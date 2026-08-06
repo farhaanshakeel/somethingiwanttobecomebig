@@ -1,0 +1,13 @@
+[tool.black]
+line-length = 88
+target-version = ['py310']
+include = '\.pyi?$'
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+exclude = ["__pycache__", ".venv", "venv", "env", "build", "dist"]
+
+[tool.isort]
+profile = "black"
+line_length = 88

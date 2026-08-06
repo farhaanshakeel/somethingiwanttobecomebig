@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tri-angle — Terms & Policies</title>
+  <style>
+    :root{--accent:#ff6600;--muted:#666}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;line-height:1.5;color:#222;margin:0;padding:0;background:#f7f8fa}
+    header{background:linear-gradient(90deg,var(--accent),#ff9a4d);color:#fff;padding:36px 20px}
+    .wrap{max-width:980px;margin:0 auto;padding:28px}
+    h1{margin:0;font-size:1.6rem}
+    nav{margin-top:12px}
+    nav a{color:rgba(255,255,255,0.95);text-decoration:none;margin-right:16px;font-weight:600}
+    section{background:#fff;border-radius:10px;padding:20px;margin:18px 0;box-shadow:0 6px 18px rgba(12,20,30,0.06)}
+    h2{color:var(--accent);margin-top:0}
+    .muted{color:var(--muted);font-size:0.95rem}
+    footer{padding:18px 20px;text-align:center;color:var(--muted);font-size:0.9rem}
+    @media (max-width:600px){.wrap{padding:18px}header{padding:28px 12px}nav a{display:block;margin:6px 0}}
+    .toc{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+    .toc a{background:#fff;border:1px solid #eee;padding:8px 12px;border-radius:6px;color:#333;text-decoration:none}
+    .small{font-size:0.92rem}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Tri-angle — Terms & Policies</h1>
+      <nav>
+        <a href="#terms">Terms of Service</a>
+        <a href="#privacy">Privacy Policy</a>
+        <a href="#community">Community Guidelines</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section id="overview">
+      <p class="muted small">Last updated: 2026-07-16</p>
+      <p>Welcome to Tri-angle. This document explains the terms of use, privacy practices,
+      and community expectations that apply when you use the Tri-angle Discord bot and
+      related features. Please read it before using the service.</p>
+      <div class="toc">
+        <a href="#terms">Terms of Service</a>
+        <a href="#privacy">Privacy Policy</a>
+        <a href="#community">Community Guidelines</a>
+      </div>
+    </section>
+
+    <section id="terms">
+      <h2>Terms of Service</h2>
+      <p class="small">By using the Tri-angle bot you agree to these Terms of Service. The
+      bot and its features are provided "as-is" and may be modified, suspended, or
+      discontinued at any time. You must not use Tri-angle for unlawful activities,
+      to harass others, or to attempt to reverse-engineer or exploit the service.
+      Server owners and administrators may remove access, content, or workspaces
+      that violate these terms.</p>
+
+      <h3 class="small">Permitted Use</h3>
+      <ul>
+        <li class="small">Use the bot to create and manage study groups, run pomodoro sessions, and access planner/profile features.</li>
+        <li class="small">Do not exploit or abuse bot commands to spam, harass, or otherwise disrupt other users.</li>
+      </ul>
+
+      <h3 class="small">Limitation of Liability</h3>
+      <p class="small">Tri-angle and its maintainers are not liable for indirect, incidental,
+      or consequential damages, lost data, or service interruptions. Use the bot at your own risk.</p>
+    </section>
+
+    <section id="privacy">
+      <h2>Privacy Policy</h2>
+      <p class="small">Tri-angle collects only the information necessary to operate its features,
+      such as Discord user IDs, role and channel references, and any data you explicitly
+      provide via bot commands (for example, study group names or task entries). By
+      default data is stored locally in the `triangle_data.json` file on the host where
+      the bot runs. The project does not sell personal data. If you deploy Tri-angle with
+      optional external services (for example, Firestore), those services may store
+      additional data according to the host's configuration and the service's policies.</p>
+
+      <h3 class="small">Data Retention & Requests</h3>
+      <p class="small">To request deletion of data stored by a specific server instance, contact
+      the server administrators or the bot owner (contact details below). For deployments
+      that use external services, data removal may require manual steps by the administrators
+      or by the external service provider; follow the deployment's documented procedures.</p>
+    </section>
+
+    <section id="community">
+      <h2>Community Guidelines</h2>
+      <p class="small">Our community aims to be respectful and inclusive. The following behaviors are prohibited:</p>
+      <ul>
+        <li class="small">Harassment, hate speech, threats, or targeted abuse.</li>
+        <li class="small">Sharing personal data without consent.</li>
+        <li class="small">Spamming, excessive self-promotion, or disruptive behavior.</li>
+      </ul>
+
+      <h3 class="small">Study Group Policy</h3>
+      <p class="small">Servers may host an official admin-started study group. Peer-led groups are
+      permitted but will be clearly marked as peer-led and may not be monitored by server
+      staff. Users join peer-led groups at their own discretion and responsibility.</p>
+    </section>
+
+    <section id="contact">
+      <h2>Contact</h2>
+      <p class="small">Questions, data removal requests, or policy concerns: contact the bot owner or your server administrators.</p>
+      <p class="small">Owner contact (replace with your address): <a href="mailto:admin@example.com">admin@example.com</a></p>
+    </section>
+  </main>
+
+  <footer>
+    © Tri-angle — Built for study communities. This page is provided as a template; adapt it to match your organization's legal and operational requirements. See the project `README` and `LICENSE` for additional details.
+  </footer>
+</body>
+</html>
