@@ -11,10 +11,8 @@
   <script src="auth.js"></script>
   <header class="header">
     <div class="wrap header-inner">
-      <a class="site-brand" href="index.html" aria-label="Pi-space home">
-        <span class="site-logo-wrap">
-          <img class="site-logo" src="logo.png" alt="Pi-space community logo" onerror="this.hidden=true;" />
-        </span>
+      <a class="site-brand site-brand-login" href="index.html" aria-label="Pi-space home">
+        <span class="site-logo-wrap site-logo-fallback" aria-hidden="true">P</span>
         <span class="site-brand-copy">
           <span class="site-brand-name">Pi-space</span>
           <span class="site-brand-subtitle">Login</span>
@@ -27,15 +25,13 @@
   <main class="auth-shell">
     <section class="auth-card">
       <div id="login-auth-status" class="auth-slot auth-slot-login"></div>
-      <p class="auth-kicker">Strict security</p>
       <h2>Sign in with Discord</h2>
-      <p class="small">Pi-space uses Discord OAuth on the server only. Your Discord password is never seen by this site, and the session is kept in an HttpOnly cookie with a short-lived server-side session record.</p>
+      <p class="small">Use Discord to access the site. Your session stays server-side and your Discord password is never stored here.</p>
 
       <div class="auth-grid">
         <ul class="auth-list">
           <li>Only the identify scope is requested.</li>
           <li>The OAuth state is validated before code exchange.</li>
-          <li>Cookies are HttpOnly, SameSite=Lax, and Secure when HTTPS is enabled.</li>
         </ul>
 
         <div class="auth-actions">

@@ -1,8 +1,5 @@
 window.TRIANGLE_SITE_CONFIG = {
-  apiBaseUrl:
-    window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-      ? "http://127.0.0.1:8080"
-      : "",
-  loginUrl: "",
+  apiBaseUrl: "https://somethingiwanttobecomebig.onrender.com",
+  loginUrl: "https://somethingiwanttobecomebig.onrender.com/login/start",
   editorUserId: "792418858987290624",
 };

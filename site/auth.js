@@ -12,10 +12,6 @@ function getApiBaseUrl() {
     return apiBaseUrl;
   }
 
-  if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-    return "http://127.0.0.1:8080";
-  }
-
   return "";
 }
 
@@ -36,7 +32,7 @@ function buildLoginUrl(nextPath = "/") {
   if (apiBaseUrl) {
     return `${apiBaseUrl}/login/start?next=${encodeURIComponent(nextPath)}`;
   }
-  return `http://127.0.0.1:8080/login/start?next=${encodeURIComponent(nextPath)}`;
+  return `/login/start?next=${encodeURIComponent(nextPath)}`;
 }
 
 function escapeHtml(value) {
