@@ -380,6 +380,9 @@ def create_app() -> web.Application:
     return app
 
 
+app = create_app()
+
+
 @web.middleware
 async def _cors_and_security_headers(request: web.Request, handler):
     origin = _cors_origin(request)
@@ -415,4 +418,4 @@ async def _cors_and_security_headers(request: web.Request, handler):
 if __name__ == "__main__":
     host = "0.0.0.0"
     port = int(os.environ.get("PORT", 10000))
-    web.run_app(create_app(), host=host, port=port)
+    web.run_app(app, host=host, port=port)
