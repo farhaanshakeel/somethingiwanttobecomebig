@@ -1,0 +1,144 @@
+function getTriangleSiteConfig() {
+  return window.TRIANGLE_SITE_CONFIG || {};
+}
+
+function getTriangleEditorUserId() {
+  return String(getTriangleSiteConfig().editorUserId || "").trim();
+}
+
+function getApiBaseUrl() {
+  const apiBaseUrl = (getTriangleSiteConfig().apiBaseUrl || "").replace(/\/$/, "");
+  if (apiBaseUrl) {
+    return apiBaseUrl;
+  }
+
+  if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+    return "http://127.0.0.1:8080";
+  }
+
+  return "";
+}
+
+function buildTriangleApiUrl(path) {
+  const apiBaseUrl = getApiBaseUrl();
+  if (!apiBaseUrl) {
+    return path;
+  }
+  return `${apiBaseUrl}${path}`;
+}
+
+function buildLoginUrl(nextPath = "/") {
+  const siteConfig = getTriangleSiteConfig();
+  if (siteConfig.loginUrl) {
+    return siteConfig.loginUrl;
+  }
+  const apiBaseUrl = getApiBaseUrl();
+  if (apiBaseUrl) {
+    return `${apiBaseUrl}/login/start?next=${encodeURIComponent(nextPath)}`;
+  }
+  return `http://127.0.0.1:8080/login/start?next=${encodeURIComponent(nextPath)}`;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function displayNameFromUser(user) {
+  if (!user) return "Guest";
+  return user.global_name || (user.discriminator && user.discriminator !== "0"
+    ? `${user.username}#${user.discriminator}`
+    : user.username) || "Discord user";
+}
+
+function isTriangleEditor(user) {
+  return Boolean(user && getTriangleEditorUserId() && String(user.id) === getTriangleEditorUserId());
+}
+
+function avatarUrlFromUser(user) {
+  if (user && user.avatar && user.id) {
+    return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64`;
+  }
+  return "https://cdn.discordapp.com/embed/avatars/0.png";
+}
+
+async function loadTriangleUser() {
+  const response = await fetch(buildTriangleApiUrl("/api/me"), {
+    credentials: "include",
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    return null;
+  }
+  const data = await response.json();
+  return data.user || null;
+}
+
+async function mountTriangleAuthWidget(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const nextPath = window.location.pathname + window.location.search;
+  container.innerHTML = '<div class="auth-widget-loading">Checking login...</div>';
+
+  let user = null;
+  try {
+    user = await loadTriangleUser();
+  } catch (error) {
+    user = null;
+  }
+
+  if (!user) {
+    container.innerHTML = `
+      <div class="auth-widget auth-widget-guest">
+        <span class="auth-status-label">Account</span>
+        <a class="auth-link auth-link-login" href="${escapeHtml(buildLoginUrl(nextPath))}">Sign in with Discord</a>
+      </div>
+    `;
+    return;
+  }
+
+  const editorBadge = isTriangleEditor(user)
+    ? '<span class="auth-editor-badge">Site editor</span>'
+    : '';
+
+  container.innerHTML = `
+    <div class="auth-widget auth-widget-signed-in">
+      <span class="auth-status-label auth-status-label-signed-in">Signed in</span>
+      ${editorBadge}
+      <div class="auth-user">
+        <img class="auth-avatar" src="${escapeHtml(avatarUrlFromUser(user))}" alt="Discord avatar" />
+        <span class="auth-name">${escapeHtml(displayNameFromUser(user))}</span>
+      </div>
+      <form action="${escapeHtml(buildTriangleApiUrl('/logout'))}" method="post">
+        <button class="auth-link secondary" type="submit">Sign out</button>
+      </form>
+    </div>
+  `;
+}
+
+async function mountTriangleEditorNote(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  try {
+    const user = await loadTriangleUser();
+    if (!isTriangleEditor(user)) {
+      container.innerHTML = "";
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="editor-note">
+        <strong>Site editor access enabled.</strong>
+        This Discord account can manage the site content and future admin tools.
+      </div>
+    `;
+  } catch (error) {
+    container.innerHTML = "";
+  }
+}

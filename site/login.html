@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pi-space — Discord Login</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <script src="site-config.js"></script>
+  <script src="auth.js"></script>
+  <header class="header">
+    <div class="wrap header-inner">
+      <a class="site-brand" href="index.html" aria-label="Pi-space home">
+        <span class="site-logo-wrap">
+          <img class="site-logo" src="logo.png" alt="Pi-space community logo" onerror="this.hidden=true;" />
+        </span>
+        <span class="site-brand-copy">
+          <span class="site-brand-name">Pi-space</span>
+          <span class="site-brand-subtitle">Login</span>
+        </span>
+      </a>
+      <a class="auth-link secondary" href="index.html">Home</a>
+    </div>
+  </header>
+
+  <main class="auth-shell">
+    <section class="auth-card">
+      <div id="login-auth-status" class="auth-slot auth-slot-login"></div>
+      <p class="auth-kicker">Strict security</p>
+      <h2>Sign in with Discord</h2>
+      <p class="small">Pi-space uses Discord OAuth on the server only. Your Discord password is never seen by this site, and the session is kept in an HttpOnly cookie with a short-lived server-side session record.</p>
+
+      <div class="auth-grid">
+        <ul class="auth-list">
+          <li>Only the identify scope is requested.</li>
+          <li>The OAuth state is validated before code exchange.</li>
+          <li>Cookies are HttpOnly, SameSite=Lax, and Secure when HTTPS is enabled.</li>
+        </ul>
+
+        <div class="auth-actions">
+          <a id="discord-login-link" class="auth-link" href="/login/start?next=/">Continue with Discord</a>
+        </div>
+
+        <p class="auth-note">If you were sent here from a protected page, you will return there automatically after login.</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    document.getElementById("discord-login-link").href = buildLoginUrl("/");
+
+    (async () => {
+      const statusContainer = document.getElementById("login-auth-status");
+      if (!statusContainer) return;
+
+      try {
+        const user = await loadTriangleUser();
+        if (!user) {
+          statusContainer.innerHTML = `
+            <div class="auth-widget auth-widget-guest auth-widget-login">
+              <span class="auth-status-label">Account</span>
+              <span class="auth-note-inline">You are not signed in yet.</span>
+            </div>
+          `;
+          return;
+        }
+
+        statusContainer.innerHTML = `
+          <div class="auth-widget auth-widget-signed-in auth-widget-login">
+            <span class="auth-status-label auth-status-label-signed-in">Signed in</span>
+            <div class="auth-user">
+              <img class="auth-avatar" src="${escapeHtml(avatarUrlFromUser(user))}" alt="Discord avatar" />
+              <span class="auth-name">${escapeHtml(displayNameFromUser(user))}</span>
+            </div>
+          </div>
+        `;
+        document.querySelector(".auth-card h2").textContent = "You are already signed in";
+        document.querySelector(".auth-card .small").textContent = "Your Discord session is active. Use the button below to continue into the academy.";
+      } catch (error) {
+        statusContainer.innerHTML = `
+          <div class="auth-widget auth-widget-guest auth-widget-login">
+            <span class="auth-status-label">Account</span>
+            <span class="auth-note-inline">Login status unavailable right now.</span>
+          </div>
+        `;
+      }
+    })();
+  </script>
+</body>
+</html>

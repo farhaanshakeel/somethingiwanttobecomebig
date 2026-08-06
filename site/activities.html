@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pi-space — Activities</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="header">
+    <div class="wrap header-inner">
+      <a class="site-brand" href="index.html" aria-label="Pi-space home">
+        <span class="site-logo-wrap">
+          <img class="site-logo" src="logo.png" alt="Pi-space community logo" onerror="this.hidden=true;" />
+        </span>
+        <span class="site-brand-copy">
+          <span class="site-brand-name">Pi-space</span>
+          <span class="site-brand-subtitle">Activities</span>
+        </span>
+      </a>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="index.html">Home</a>
+        <a href="lessons.html">Lessons</a>
+        <a href="activities.html" aria-current="page">Activities</a>
+        <a href="../terms_and_policies.html">Terms</a>
+      </nav>
+      <div id="auth-widget" class="auth-slot"></div>
+    </div>
+  </header>
+
+  <script src="site-config.js"></script>
+  <script src="auth.js"></script>
+
+  <main class="wrap main">
+    <section class="card hero">
+      <div class="section-label">Programs</div>
+      <h2 id="programs">Acharnement</h2>
+      <div class="hero-copy">
+        <p>Acharnement is a year-long program whose sole purpose is to enhance our abilities in both Mathematics and Physics by learning and growing together with our peers through a variety of sub-programs.</p>
+        <p class="small">The program will officially begin once we reach our target of 100 members.</p>
+      </div>
+      <div class="card" style="margin:0;">
+        <p class="small">[Discord server members count status]</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Points &amp; Rewards</h2>
+      <p class="small">There will be a points system that can be converted into <a href="https://discord.com/channels/1519982094535626862/1519982095194128432/1531239732024184983">Power IQ</a> credits, a community with an economy system where credits can be used to purchase various rewards.</p>
+      <p class="small"><strong>Conversion rate:</strong> 5 points = 1 Power IQ credit</p>
+      <ul class="small">
+        <li>Solving the difficult weekly problems provided by the mentors.</li>
+        <li>Demonstrating legitimate improvement in your skills across different subjects.</li>
+        <li>Completing subject-related activities and challenges.</li>
+        <li>Performing well in examinations.</li>
+        <li>Teaching others or helping solve their doubts.</li>
+      </ul>
+      <p class="small">More details will be announced later in the server. Feel free to ask questions in the meantime.</p>
+    </section>
+
+    <section class="card">
+      <h2>What the Program Includes</h2>
+      <div class="grid">
+        <div class="lesson-card">
+          <h3>Mentors</h3>
+          <p class="small">Each subject will have dedicated mentors. They will conduct lessons, quizzes, and engaging activities.</p>
+        </div>
+        <div class="lesson-card">
+          <h3 id="activities">Activities</h3>
+          <p class="small">Research-based activities where you explore a topic in depth and present ideas, theories, methods, or postulations.</p>
+        </div>
+        <div class="lesson-card">
+          <h3>Study Groups</h3>
+          <p class="small">Members are free to create their own study groups, provided they ask the moderators first.</p>
+        </div>
+        <div class="lesson-card">
+          <h3>Exams &amp; Moderated Exams</h3>
+          <p class="small">Main examinations are held every two months, alongside moderated exams for study groups.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    © Pi-space 2026, all rights reserved.
+  </footer>
+
+  <script>
+    mountTriangleAuthWidget("auth-widget");
+  </script>
+</body>
+</html>

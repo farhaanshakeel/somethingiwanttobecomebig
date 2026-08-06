@@ -1,4 +1,4 @@
-"""Main entrypoint for the Tri-angle Discord bot.
+"""Main entrypoint for the Pi-space Discord bot.
 
 Initialises the bot, loads cogs from the `cogs` package, and defines
 core event handlers such as startup sync and DM forwarding.
@@ -57,7 +57,7 @@ async def on_ready():
     is set, otherwise performs a global sync. Caches a DM log channel
     lookup for later use by the DM forwarding handler.
     """
-    print(f"\n🔺 Tri-angle is online as {bot.user}")
+    print(f"\n🔺 Pi-space is online as {bot.user}")
     try:
         # Fast-sync to a development guild if provided for immediate command availability.
         dev_gid = os.getenv("DEV_GUILD_ID")
@@ -114,7 +114,7 @@ async def on_message(message):
 
         # Reply to the user
         reply_embed = discord.Embed(
-            title="🔺 Tri-angle Bot",
+            title="🔺 Pi-space Bot",
             description="I received your message! How can I help you today?",
             color=0xFF6600,
         )

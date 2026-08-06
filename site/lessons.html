@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pi-space — Lessons</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [["$", "$"], ["\\(", "\\)"]],
+        displayMath: [["$$", "$$"], ["\\[", "\\]"]],
+      },
+      options: {
+        skipHtmlTags: ["script", "noscript", "style", "textarea", "pre", "code"],
+      },
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <header class="header">
+    <div class="wrap header-inner">
+      <a class="site-brand" href="index.html" aria-label="Pi-space home">
+        <span class="site-logo-wrap">
+          <img class="site-logo" src="logo.png" alt="Pi-space community logo" onerror="this.hidden=true;" />
+        </span>
+        <span class="site-brand-copy">
+          <span class="site-brand-name">Pi-space</span>
+          <span class="site-brand-subtitle">Academy</span>
+        </span>
+      </a>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="index.html">Home</a>
+        <a href="lessons.html" aria-current="page">Lessons</a>
+        <a href="activities.html">Activities</a>
+        <a href="../terms_and_policies.html">Terms</a>
+      </nav>
+      <div id="auth-widget" class="auth-slot"></div>
+    </div>
+  </header>
+
+  <main class="wrap main">
+    <section class="card">
+      <p class="small">The academy uses course-style modules, live teacher posts, and practice-friendly tracks. Each class page can include objectives, notes, and study groups tied to the same subject area.</p>
+    </section>
+
+    <section class="card">
+      <h2>Academy Format</h2>
+      <div class="grid">
+        <div class="lesson-card">
+          <h3>Course</h3>
+          <p class="small">A full subject track with lessons, examples, and revision.</p>
+        </div>
+        <div class="lesson-card">
+          <h3>Workshop</h3>
+          <p class="small">Shorter sessions focused on solving problems and reviewing concepts.</p>
+        </div>
+        <div class="lesson-card">
+          <h3>Practice Set</h3>
+          <p class="small">Extra problems for independent study and exam preparation.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Latest Posted Lessons</h2>
+      <p class="small">Teacher posts appear here as live academy announcements and class notes.</p>
+      <div id="posted-lessons" class="grid live-grid" aria-live="polite"></div>
+    </section>
+
+    <section class="card" id="featured">
+      <h2>Featured Modules</h2>
+      <div class="grid">
+        <div class="lesson-card">
+          <h3>Precalculus Core</h3>
+          <p class="small">Functions, graphs, and algebra techniques that prepare students for advanced math.</p>
+          <p class="small"><strong>Duration:</strong> 6 weeks • <strong>Level:</strong> Intermediate</p>
+          <p class="small"><a href="#precalc">View details</a></p>
+        </div>
+
+        <div class="lesson-card">
+          <h3>Number Theory Lab</h3>
+          <p class="small">Divisibility, modular arithmetic, and olympiad-style problem solving.</p>
+          <p class="small"><strong>Duration:</strong> 5 weeks • <strong>Level:</strong> Intermediate → Advanced</p>
+          <p class="small"><a href="#nt">View details</a></p>
+        </div>
+
+        <div class="lesson-card">
+          <h3>Problem Solving Seminar</h3>
+          <p class="small">Weekly strategy sessions for proofs, contest problems, and collaborative discussion.</p>
+          <p class="small"><strong>Duration:</strong> Ongoing • <strong>Level:</strong> All levels</p>
+          <p class="small"><a href="#ps">View details</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>How to Add a Course</h2>
+      <ol>
+        <li>Post a lesson through the bot or publish the course outline through the academy backend.</li>
+        <li>Include goals, prerequisites, class notes, and practice prompts.</li>
+        <li>Add study group links or discussion prompts for students.</li>
+      </ol>
+    </section>
+
+    <section class="card">
+      <h2>Schedule & Events</h2>
+      <p class="small">Community study sessions and lessons are scheduled by server moderators. If you run a lesson series, add events to your server calendar and share the invite link in the #events channel.</p>
+    </section>
+
+    <section class="card">
+      <h2>Resources</h2>
+      <ul class="small">
+        <li><a href="https://khanacademy.org">Khan Academy</a></li>
+        <li><a href="https://coursera.org">Coursera</a></li>
+        <li><a href="https://edx.org">edX</a></li>
+      </ul>
+    </section>
+
+  </main>
+
+  <script src="site-config.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    const lessonsContainer = document.getElementById("posted-lessons");
+    const siteConfig = window.TRIANGLE_SITE_CONFIG || {};
+    const apiBaseUrl = (siteConfig.apiBaseUrl || "").replace(/\/$/, "");
+
+    function buildApiUrl(path) {
+      if (!apiBaseUrl) {
+        return path;
+      }
+      return `${apiBaseUrl}${path}`;
+    }
+
+    async function fetchLessonsFromStaticFile() {
+      const staticPaths = ["../triangle_data.json", "triangle_data.json"];
+      for (const path of staticPaths) {
+        try {
+          const response = await fetch(path, { cache: "no-store" });
+          if (!response.ok) {
+            continue;
+          }
+          const data = await response.json();
+          if (Array.isArray(data.lessons)) {
+            return data.lessons;
+          }
+        } catch (error) {
+          continue;
+        }
+      }
+      return [];
+    }
+
+    function formatLessonDate(value) {
+      if (!value) return "Just now";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return new Intl.DateTimeFormat(undefined, {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(date);
+    }
+
+    function renderLessons(lessons) {
+      lessonsContainer.innerHTML = "";
+      if (!lessons.length) {
+        const empty = document.createElement("div");
+        empty.className = "lesson-card empty-state";
+        empty.textContent = "No lessons have been posted yet.";
+        lessonsContainer.appendChild(empty);
+        return;
+      }
+
+      lessons.forEach((lesson) => {
+        const card = document.createElement("article");
+        card.className = "lesson-card lesson-live";
+
+        const title = document.createElement("h3");
+        title.textContent = lesson.title || "Untitled lesson";
+        card.appendChild(title);
+
+        const meta = document.createElement("p");
+        meta.className = "small lesson-meta";
+        const author = lesson.author_name || "Unknown teacher";
+        const created = formatLessonDate(lesson.created);
+        meta.textContent = `${author} • ${created}`;
+        card.appendChild(meta);
+
+        if (lesson.latex) {
+          const badge = document.createElement("span");
+          badge.className = "badge";
+          badge.textContent = "LaTeX";
+          card.appendChild(badge);
+        }
+
+        const content = document.createElement("p");
+        content.className = "lesson-summary";
+        content.textContent = lesson.content || "";
+        card.appendChild(content);
+
+        lessonsContainer.appendChild(card);
+
+        if (window.MathJax?.typesetPromise) {
+          window.MathJax.typesetPromise([card]).catch(() => {});
+        }
+      });
+    }
+
+    async function loadLessons() {
+      try {
+        const response = await fetch(buildApiUrl("/api/lessons"), {
+          cache: "no-store",
+          credentials: "include",
+        });
+        if (response.status === 401) {
+          const lessons = await fetchLessonsFromStaticFile();
+          renderLessons(
+            lessons
+              ? [...lessons].sort((left, right) => {
+                  const leftTime = new Date(left.created || 0).getTime();
+                  const rightTime = new Date(right.created || 0).getTime();
+                  return rightTime - leftTime;
+                })
+              : []
+          );
+          return;
+        }
+        const data = await response.json();
+        const lessons = Array.isArray(data.lessons)
+          ? [...data.lessons].sort((left, right) => {
+              const leftTime = new Date(left.created || 0).getTime();
+              const rightTime = new Date(right.created || 0).getTime();
+              return rightTime - leftTime;
+            })
+          : [];
+        renderLessons(lessons);
+      } catch (error) {
+        const lessons = await fetchLessonsFromStaticFile();
+        if (lessons.length) {
+          renderLessons(
+            [...lessons].sort((left, right) => {
+              const leftTime = new Date(left.created || 0).getTime();
+              const rightTime = new Date(right.created || 0).getTime();
+              return rightTime - leftTime;
+            })
+          );
+          return;
+        }
+        lessonsContainer.innerHTML = "";
+        const fallback = document.createElement("div");
+        fallback.className = "lesson-card empty-state";
+        fallback.textContent = "Unable to load lessons right now.";
+        lessonsContainer.appendChild(fallback);
+      }
+    }
+
+    loadLessons();
+  </script>
+
+  <footer>
+    © Pi-space Community — Lessons curated by members.
+  </footer>
+
+  <script>
+    mountTriangleAuthWidget("auth-widget");
+  </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-"""Lightweight persistence helpers for Tri-angle.
+"""Lightweight persistence helpers for Pi-space.
 
 This module provides a thin JSON-backed in-memory cache with a
 debounced write-to-disk strategy to avoid frequent file I/O.
@@ -9,6 +9,7 @@ import os
 import threading
 
 DATA_FILE = "triangle_data.json"
+DEFAULT_DATA = {"study_groups": {}, "tasks": {}, "stats": {}, "lessons": []}
 
 # In-memory cache to avoid repeated file reads/writes
 _DATA_CACHE = None
@@ -30,9 +31,13 @@ def _ensure_loaded():
                 with open(DATA_FILE, "r", encoding="utf-8") as f:
                     _DATA_CACHE = json.load(f)
             except Exception:
-                _DATA_CACHE = {"study_groups": {}, "tasks": {}, "stats": {}}
+                _DATA_CACHE = DEFAULT_DATA.copy()
         else:
-            _DATA_CACHE = {"study_groups": {}, "tasks": {}, "stats": {}}
+            _DATA_CACHE = DEFAULT_DATA.copy()
+
+        for key, default_value in DEFAULT_DATA.items():
+            if key not in _DATA_CACHE:
+                _DATA_CACHE[key] = default_value.copy() if isinstance(default_value, list) else default_value
 
 
 def load_data():

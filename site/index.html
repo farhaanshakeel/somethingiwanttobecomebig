@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pi-space Academy</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="header">
+    <div class="wrap header-inner">
+      <a class="site-brand" href="index.html" aria-label="Pi-space home">
+        <span class="site-logo-wrap">
+          <img class="site-logo" src="logo.png" alt="Pi-space community logo" onerror="this.hidden=true;" />
+        </span>
+        <span class="site-brand-copy">
+          <span class="site-brand-name">Pi-space</span>
+          <span class="site-brand-subtitle">Academy</span>
+        </span>
+      </a>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="index.html" aria-current="page">Home</a>
+        <a href="lessons.html">Lessons</a>
+        <a href="activities.html">Activities</a>
+        <a href="../terms_and_policies.html">Terms</a>
+      </nav>
+      <div id="auth-widget" class="auth-slot"></div>
+    </div>
+  </header>
+
+  <script src="site-config.js"></script>
+  <script src="auth.js"></script>
+
+  <main class="wrap main">
+    <section class="card hero">
+      <div class="section-label">Welcome</div>
+      <h2>Welcome to Pi-space Academy</h2>
+      <div class="hero-copy">
+        <p>A structured learning and studying community for students who want to get better at their Mathematics and Physics skills and stand out, while also preparing for examinations like olympiads, for example IOQM, RMO, or IMO, and more. It is a non-profit community, providing everything free of cost.</p>
+        <p class="small">A structured learning hub for students who want courses, practice, and guided discussion. The community still powers everything, but the experience is organized more like an academy than a loose forum.</p>
+      </div>
+    </section>
+
+    <div id="site-editor-note"></div>
+
+    <section class="card">
+      <h2>Highlights</h2>
+      <div class="feature-grid">
+        <a class="feature-link" href="lessons.html">
+          <span class="feature-label">Lessons</span>
+          <strong>Lessons</strong>
+          <span class="feature-text">Lessons posted by the mentors. Click here to visit, learn, and provide feedback to the teacher.</span>
+        </a>
+        <a class="feature-link" href="activities.html#programs">
+          <span class="feature-label">Programs</span>
+          <strong>Programs</strong>
+          <span class="feature-text">Programs launched by the community. Programs are the main feature of the community, with many benefits and sessions ongoing. Each program lasts a year, and there are sub-programs within it.</span>
+        </a>
+        <a class="feature-link" href="activities.html#activities">
+          <span class="feature-label">Activities</span>
+          <strong>Activities</strong>
+          <span class="feature-text">Research-based activities, guided practice, and deadline-driven challenges that help students grow together.</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>How It Works</h2>
+      <ol>
+        <li>Join the site with Discord for a secure student profile.</li>
+        <li>Browse the academy tracks and open course pages.</li>
+        <li>Use the bot for study groups, teacher posts, and guided practice.</li>
+      </ol>
+    </section>
+
+    <section class="card">
+      <h2>What’s in the Academy</h2>
+      <div class="grid">
+        <div class="lesson-card">
+          <h3>Structured Courses</h3>
+          <p class="small">Each track is organized into lessons, assignments, and practice sets.</p>
+        </div>
+        <div class="lesson-card">
+          <h3>Lessons</h3>
+          <p class="small">Teachers can publish lessons that appear in the course feed automatically.</p>
+        </div>
+        <div class="lesson-card">
+          <h3>Study Groups</h3>
+          <p class="small">Students can form focused groups around a specific track or exam.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    © Pi-space 2026, all rights reserved.
+  </footer>
+
+  <script>
+    mountTriangleAuthWidget("auth-widget");
+    mountTriangleEditorNote("site-editor-note");
+  </script>
+</body>
+</html>

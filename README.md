@@ -1,8 +1,11 @@
-# Tri-angle
+# Pi-space
 
-Tri-angle is a Discord bot designed to help students form study groups,
+Pi-space is a Discord bot designed to help students form study groups,
 manage tasks, and run lightweight productivity features (pomodoro, planner,
 profiles). It aims to be easy to run locally and simple to extend via Cogs.
+
+The repository also includes a small secure web app for Discord login and the
+community site.
 
 ## Quickstart
 
@@ -35,11 +38,39 @@ DEV_GUILD_ID=123456789012345678
 python main.py
 ```
 
+5. Run the site server if you want Discord login on the website:
+
+```powershell
+python webapp.py
+```
+
+For a GitHub Pages + Cloud Functions deployment, edit `site/site-config.js` so
+`apiBaseUrl` points at your deployed backend and `loginUrl` points at the
+backend login route.
+
+By default, the site still works against the local backend paths used by
+`webapp.py`.
+
+For cross-origin login from GitHub Pages, set `SITE_CORS_ORIGINS` to your Pages
+origin and use `SITE_COOKIE_SAMESITE=None` plus `SITE_COOKIE_SECURE=1` on the
+backend.
+
+The static site now loads `site/auth.js` to show login state and a Discord sign-in
+button directly on the academy pages.
+
+Local development now defaults the frontend API to `http://127.0.0.1:8080`, so
+the Discord login button works as soon as `webapp.py` is running.
+
 ## Configuration
 
 - `DEV_GUILD_ID`: optional guild (server) ID used to sync slash commands to a
 	development server quickly during development.
 - `DISCORD_TOKEN`: your bot token (required).
+- `DISCORD_CLIENT_ID`: Discord OAuth application client ID for the website.
+- `DISCORD_CLIENT_SECRET`: Discord OAuth application client secret.
+- `DISCORD_REDIRECT_URI`: OAuth callback URL, for example `http://127.0.0.1:8080/callback`.
+- `SITE_COOKIE_SECURE`: set to `1` when the site is served over HTTPS.
+- `SITE_PORT`: local port for the site server.
 
 ## Developer
 
