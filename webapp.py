@@ -357,32 +357,6 @@ async def handle_site_config(request: web.Request) -> web.Response:
     return web.FileResponse(SITE_DIR / "site-config.js")
 
 
-def create_app() -> web.Application:
-    app = web.Application(
-        client_max_size=2 * 1024 * 1024,
-        middlewares=[_cors_and_security_headers],
-    )
-
-    app.router.add_get("/", handle_index)
-    app.router.add_get("/index.html", handle_index)
-    app.router.add_get("/lessons.html", handle_lessons)
-    app.router.add_get("/activities.html", handle_activities)
-    app.router.add_get("/terms_and_policies.html", handle_terms)
-    app.router.add_get("/login", handle_login)
-    app.router.add_get("/login/start", handle_login_start)
-    app.router.add_get("/callback", handle_callback)
-    app.router.add_post("/logout", handle_logout)
-    app.router.add_get("/api/me", handle_api_me)
-    app.router.add_get("/api/lessons", handle_api_lessons)
-    app.router.add_get("/styles.css", handle_styles)
-    app.router.add_get("/auth.js", handle_auth_script)
-    app.router.add_get("/site-config.js", handle_site_config)
-    return app
-
-
-app = create_app()
-
-
 @web.middleware
 async def _cors_and_security_headers(request: web.Request, handler):
     origin = _cors_origin(request)
@@ -413,6 +387,32 @@ async def _cors_and_security_headers(request: web.Request, handler):
         response.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
         response.headers["Vary"] = "Origin"
     return response
+
+
+def create_app() -> web.Application:
+    app = web.Application(
+        client_max_size=2 * 1024 * 1024,
+        middlewares=[_cors_and_security_headers],
+    )
+
+    app.router.add_get("/", handle_index)
+    app.router.add_get("/index.html", handle_index)
+    app.router.add_get("/lessons.html", handle_lessons)
+    app.router.add_get("/activities.html", handle_activities)
+    app.router.add_get("/terms_and_policies.html", handle_terms)
+    app.router.add_get("/login", handle_login)
+    app.router.add_get("/login/start", handle_login_start)
+    app.router.add_get("/callback", handle_callback)
+    app.router.add_post("/logout", handle_logout)
+    app.router.add_get("/api/me", handle_api_me)
+    app.router.add_get("/api/lessons", handle_api_lessons)
+    app.router.add_get("/styles.css", handle_styles)
+    app.router.add_get("/auth.js", handle_auth_script)
+    app.router.add_get("/site-config.js", handle_site_config)
+    return app
+
+
+app = create_app()
 
 
 if __name__ == "__main__":
