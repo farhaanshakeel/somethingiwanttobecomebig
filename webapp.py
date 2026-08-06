@@ -413,6 +413,6 @@ async def _cors_and_security_headers(request: web.Request, handler):
 
 
 if __name__ == "__main__":
-    host = os.getenv("SITE_HOST", "127.0.0.1")
-    port = int(os.getenv("SITE_PORT", "8080"))
+    host = os.getenv("SITE_HOST", "0.0.0.0")
+    port = int(os.environ.get("PORT", 10000))
     web.run_app(create_app(), host=host, port=port)
