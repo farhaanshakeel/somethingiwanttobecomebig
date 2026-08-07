@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pi-space — Site Editor</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <script src="site-config.js"></script>
+  <script src="auth.js"></script>
+  <header class="header">
+    <div class="wrap header-inner">
+      <a class="site-brand" href="index.html" aria-label="Pi-space home">
+        <span class="site-logo-wrap">
+          <img class="site-logo" src="logo.png" alt="Pi-space community logo" onerror="this.hidden=true;" />
+        </span>
+        <span class="site-brand-copy">
+          <span class="site-brand-name">Pi-space</span>
+          <span class="site-brand-subtitle">Editor</span>
+        </span>
+      </a>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="index.html">Home</a>
+        <a href="lessons.html">Lessons</a>
+        <a href="activities.html">Activities</a>
+        <a href="../terms_and_policies.html">Terms</a>
+      </nav>
+      <div id="auth-widget" class="auth-slot"></div>
+    </div>
+  </header>
+
+  <main class="wrap main">
+    <section class="card">
+      <h2>Site Editor</h2>
+      <p class="small">Edit site files directly. Use relative paths under the project root, for example <code>site/page.html</code> or <code>site/lessons.html</code>.</p>
+
+      <label for="file-path">File path</label>
+      <input id="file-path" type="text" placeholder="site/example.html" style="width:100%;" />
+
+      <label for="file-content">Content</label>
+      <textarea id="file-content" rows="20" style="width:100%; font-family: monospace;"></textarea>
+
+      <div style="margin-top:8px; display:flex; gap:8px;">
+        <button id="load-btn" class="auth-link">Load</button>
+        <button id="save-btn" class="auth-link">Save</button>
+        <span id="editor-status" style="align-self:center"></span>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function showStatus(msg, ok = true) {
+      const el = document.getElementById('editor-status');
+      el.textContent = msg;
+      el.style.color = ok ? 'green' : 'red';
+      setTimeout(() => { if (el.textContent === msg) el.textContent = '' }, 4000);
+    }
+
+    document.getElementById('load-btn').addEventListener('click', async () => {
+      const path = document.getElementById('file-path').value.trim();
+      if (!path) { showStatus('Enter a file path', false); return; }
+      try {
+        const resp = await fetch(path, { credentials: 'include' });
+        if (!resp.ok) { showStatus('Failed to load file', false); return; }
+        const text = await resp.text();
+        document.getElementById('file-content').value = text;
+        showStatus('Loaded');
+      } catch (err) {
+        showStatus('Error loading file', false);
+      }
+    });
+
+    document.getElementById('save-btn').addEventListener('click', async () => {
+      const path = document.getElementById('file-path').value.trim();
+      const content = document.getElementById('file-content').value;
+      if (!path) { showStatus('Enter a file path', false); return; }
+      try {
+        const resp = await fetch('/admin/save', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path, content })
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) {
+          showStatus(data && data.message ? data.message : 'Save failed', false);
+          return;
+        }
+        showStatus('Saved');
+      } catch (err) {
+        showStatus('Save error', false);
+      }
+    });
+  </script>
+</body>
+</html>

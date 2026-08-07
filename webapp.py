@@ -345,6 +345,49 @@ async def handle_api_lessons(request: web.Request) -> web.Response:
     return web.json_response({"lessons": sorted_lessons})
 
 
+async def handle_admin_save(request: web.Request) -> web.Response:
+    """Save a site file. Only accessible to the configured site editor.
+
+    Expects JSON: { "path": "relative/path/to/file.html", "content": "..." }
+    The path is restricted to files under the project root (ROOT_DIR).
+    """
+    user = await _require_user(request)
+    if not _is_site_editor(user):
+        raise web.HTTPForbidden(text="Editor access required")
+
+    try:
+        payload = await request.json()
+    except Exception:
+        raise web.HTTPBadRequest(text="Invalid JSON payload")
+
+    path = (payload.get("path") or "").strip()
+    content = payload.get("content")
+    if not path or content is None:
+        raise web.HTTPBadRequest(text="Missing 'path' or 'content' in payload")
+
+    # Normalize target path and ensure it's inside the repository root.
+    target = (ROOT_DIR / path.lstrip("/"))
+    try:
+        target_resolved = target.resolve()
+    except Exception:
+        raise web.HTTPBadRequest(text="Invalid path")
+
+    try:
+        root_resolved = ROOT_DIR.resolve()
+        target_resolved.relative_to(root_resolved)
+    except Exception:
+        raise web.HTTPBadRequest(text="Path outside allowed project root")
+
+    # Ensure parent directories exist and write file
+    try:
+        target_resolved.parent.mkdir(parents=True, exist_ok=True)
+        target_resolved.write_text(str(content), encoding="utf-8")
+    except Exception as exc:
+        raise web.HTTPInternalServerError(text=f"Failed to write file: {exc}")
+
+    return web.json_response({"ok": True, "path": str(target_resolved.relative_to(root_resolved))})
+
+
 async def handle_styles(request: web.Request) -> web.Response:
     return web.FileResponse(SITE_DIR / "styles.css")
 
@@ -355,6 +398,27 @@ async def handle_auth_script(request: web.Request) -> web.Response:
 
 async def handle_site_config(request: web.Request) -> web.Response:
     return web.FileResponse(SITE_DIR / "site-config.js")
+
+
+async def handle_editor(request: web.Request) -> web.Response:
+    """Serve the in-browser editor page. Only accessible to the configured site editor."""
+    user = await _current_user(request)
+    if not user:
+        next_path = _safe_next_path(request.path_qs if request.path_qs else request.path)
+        raise web.HTTPFound(f"/login?{urlencode({'next': next_path})}")
+
+    if not _is_site_editor(user):
+        raise web.HTTPForbidden(text="Editor access required")
+
+    source_path = SITE_DIR / "editor.html"
+    html_text = source_path.read_text(encoding="utf-8")
+    auth_widget = _auth_widget(user)
+    placeholder = '<div id="auth-widget" class="auth-slot"></div>'
+    if placeholder in html_text:
+        html_text = html_text.replace(placeholder, f'<div id="auth-widget" class="auth-slot">{auth_widget}</div>', 1)
+    else:
+        html_text = html_text.replace("</nav>", f"{auth_widget}</nav>", 1)
+    return web.Response(text=html_text, content_type="text/html")
 
 
 @web.middleware
@@ -409,6 +473,8 @@ def create_app() -> web.Application:
     app.router.add_get("/styles.css", handle_styles)
     app.router.add_get("/auth.js", handle_auth_script)
     app.router.add_get("/site-config.js", handle_site_config)
+    app.router.add_get("/editor", handle_editor)
+    app.router.add_post("/admin/save", handle_admin_save)
     return app
 
 

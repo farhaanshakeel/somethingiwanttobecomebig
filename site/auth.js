@@ -132,6 +132,7 @@ async function mountTriangleEditorNote(containerId) {
       <div class="editor-note">
         <strong>Site editor access enabled.</strong>
         This Discord account can manage the site content and future admin tools.
+        <div style="margin-top:8px;"><a class="auth-link" href="${escapeHtml(buildTriangleApiUrl('/editor'))}">Open site editor</a></div>
       </div>
     `;
   } catch (error) {
