@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pi-space - My profile</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="header">
+    <div class="wrap header-inner">
+      <a class="site-brand" href="index.html" aria-label="Pi-space home">
+        <span class="site-logo-wrap"><img class="site-logo" src="logo.svg" alt="Pi-space community logo" /></span>
+        <span class="site-brand-copy"><span class="site-brand-name">Pi-space</span><span class="site-brand-subtitle">Profile</span></span>
+      </a>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="index.html">Home</a><a href="lessons.html">Lessons</a><a href="forum.html">Forum</a><a href="activities.html">Activities</a><a href="../terms_and_policies.html">Terms</a>
+      </nav>
+      <div id="auth-widget" class="auth-slot"></div>
+    </div>
+  </header>
+  <main class="wrap main profile-main">
+    <section class="card hero">
+      <div class="section-label">Your account</div>
+      <h1>My profile</h1>
+      <p class="hero-copy">Your profile is private by default. Choose what you want to share with the Pi-space community.</p>
+    </section>
+    <section class="card profile-panel">
+      <div id="profile-status" class="editor-status" role="status"></div>
+      <form id="profile-form">
+        <div class="profile-identity"><img id="profile-avatar" class="profile-image" src="logo.svg" alt="" /><div><h2 id="profile-name">Loading profile...</h2><p class="small">Discord identity is managed by Discord and cannot be edited here.</p></div></div>
+        <label>Bio<textarea id="profile-bio" maxlength="500" rows="5" placeholder="Tell the community what you are learning."></textarea></label>
+        <label>Subjects<input id="profile-subjects" maxlength="480" placeholder="Mathematics, Physics, IOQM"></label>
+        <label class="profile-privacy"><input id="profile-private" type="checkbox" checked> Keep my profile private</label>
+        <button class="auth-link auth-link-login" type="submit">Save profile</button>
+      </form>
+    </section>
+  </main>
+  <footer>© Pi-space 2026, all rights reserved.</footer>
+  <script src="site-config.js"></script>
+  <script src="auth.js"></script>
+  <script src="profile.js"></script>
+  <script>mountTriangleAuthWidget("auth-widget"); mountTriangleProfile();</script>
+</body>
+</html>

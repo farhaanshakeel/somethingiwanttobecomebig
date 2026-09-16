@@ -110,6 +110,7 @@ async function mountTriangleAuthWidget(containerId) {
         <img class="auth-avatar" src="${escapeHtml(avatarUrlFromUser(user))}" alt="Discord avatar" />
         <span class="auth-name">${escapeHtml(displayNameFromUser(user))}</span>
       </div>
+      <a class="auth-link secondary" href="${escapeHtml(buildTriangleApiUrl('/profile'))}">My profile</a>
       <form action="${escapeHtml(buildTriangleApiUrl('/logout'))}" method="post">
         <button class="auth-link secondary" type="submit">Sign out</button>
       </form>
@@ -179,6 +180,9 @@ async function mountDiscordServerStatus(containerId) {
         item.appendChild(name);
         activeMembersList.appendChild(item);
       });
+    } else if (activeMembers && activeMembersList && status.activeMembersAvailable === false) {
+      activeMembers.hidden = false;
+      activeMembersList.textContent = "Member names are unavailable until the Discord Server Widget is enabled.";
     }
     if (status.invite) {
       link.href = status.invite;

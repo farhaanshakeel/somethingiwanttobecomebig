@@ -90,6 +90,10 @@ p { margin: 0 0 1em; }
 .server-status-light + .active-members .active-member { background: var(--paper); border-color: var(--line); }
 .active-member img { border-radius: 50%; height: 24px; object-fit: cover; width: 24px; }
 .active-member span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.profile-identity { align-items: center; display: flex; gap: 16px; margin-bottom: 24px; }
+.profile-identity .profile-image { border-radius: 50%; height: 64px; object-fit: cover; width: 64px; }
+.profile-identity h2 { margin: 0; }
+.profile-privacy { align-items: center; display: flex; gap: 8px; }
 .lesson-live { display: flex; flex-direction: column; gap: 10px; }
 .lesson-meta { margin: 0; }
 .lesson-summary { color: var(--ink); margin: 0; white-space: pre-wrap; }

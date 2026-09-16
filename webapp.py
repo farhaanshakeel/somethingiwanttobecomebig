@@ -7,6 +7,8 @@ authenticated delivery of the static site and lesson data.
 from __future__ import annotations
 
 import html
+import hashlib
+import hmac
 import json
 import os
 import secrets
@@ -41,6 +43,8 @@ DISCORD_REDIRECT_URI = os.getenv("DISCORD_REDIRECT_URI", "").strip()
 DISCORD_BOT_TOKEN = os.getenv("DISCORD_TOKEN", "").strip()
 DISCORD_GUILD_ID = os.getenv("DISCORD_GUILD_ID", "1519982094535626862").strip()
 SITE_EDITOR_USER_ID = os.getenv("SITE_EDITOR_USER_ID", "792418858987290624").strip()
+PROFILE_IP_HASH_SECRET = os.getenv("PROFILE_IP_HASH_SECRET", "").strip()
+PROFILE_IP_HASH_TTL = int(os.getenv("PROFILE_IP_HASH_TTL", "2592000"))
 
 SESSION_COOKIE = "tri_angle_session"
 SESSION_TTL_SECONDS = int(os.getenv("SITE_SESSION_TTL", "86400"))
@@ -150,6 +154,70 @@ def _avatar_url(user: dict) -> str:
     if avatar and user_id:
         return f"https://cdn.discordapp.com/avatars/{user_id}/{avatar}.png?size=64"
     return "https://cdn.discordapp.com/embed/avatars/0.png"
+
+
+def _client_ip(request: web.Request) -> str | None:
+    if os.getenv("TRUST_PROXY", "0") != "1":
+        return request.remote
+    forwarded = request.headers.get("X-Forwarded-For", "")
+    return forwarded.split(",", 1)[0].strip() or request.remote
+
+
+def _ip_hash(request: web.Request) -> str | None:
+    if not PROFILE_IP_HASH_SECRET:
+        return None
+    address = _client_ip(request)
+    if not address:
+        return None
+    return hmac.new(
+        PROFILE_IP_HASH_SECRET.encode("utf-8"), address.encode("utf-8"), hashlib.sha256
+    ).hexdigest()
+
+
+def _profile_for_user(user: dict, request: web.Request | None = None) -> dict:
+    data = load_data()
+    profiles = data.setdefault("web_profiles", {})
+    user_id = str(user.get("id", ""))
+    now = datetime.now(timezone.utc).isoformat()
+    profile = profiles.setdefault(
+        user_id,
+        {
+            "discord_id": user_id,
+            "display_name": _display_name(user),
+            "avatar": _avatar_url(user),
+            "bio": "",
+            "subjects": [],
+            "private": True,
+            "joined_at": now,
+            "updated_at": now,
+        },
+    )
+    profile["display_name"] = _display_name(user)
+    profile["avatar"] = _avatar_url(user)
+    if request is not None:
+        profile["last_seen_at"] = now
+        profile["last_ip_hash"] = _ip_hash(request)
+        profile["ip_hash_expires_at"] = (
+            time.time() + PROFILE_IP_HASH_TTL if PROFILE_IP_HASH_SECRET else None
+        )
+    save_data(data)
+    return profile
+
+
+def _public_profile(profile: dict) -> dict:
+    return {
+        key: profile.get(key)
+        for key in (
+            "discord_id",
+            "display_name",
+            "avatar",
+            "bio",
+            "subjects",
+            "private",
+            "joined_at",
+            "updated_at",
+        )
+    }
 
 
 def _is_site_editor(user: dict | None) -> bool:
@@ -395,11 +463,13 @@ async def handle_api_discord_status(request: web.Request) -> web.Response:
                 if guild_response.status == 200:
                     guild = await guild_response.json()
                     active_members = []
+                    active_members_available = False
                     widget_url = DISCORD_WIDGET_URL.format(guild_id=DISCORD_GUILD_ID)
                     try:
                         async with session.get(widget_url) as widget_response:
                             if widget_response.status == 200:
                                 widget = await widget_response.json()
+                                active_members_available = True
                                 active_members = [
                                     {
                                         "id": str(member.get("id", "")),
@@ -418,6 +488,7 @@ async def handle_api_discord_status(request: web.Request) -> web.Response:
                             "members": guild.get("approximate_member_count", 0),
                             "online": guild.get("approximate_presence_count", 0),
                             "activeMembers": active_members,
+                            "activeMembersAvailable": active_members_available,
                         },
                         headers={"Cache-Control": "public, max-age=60"},
                     )
@@ -437,6 +508,7 @@ async def handle_api_discord_status(request: web.Request) -> web.Response:
             "members": len(widget.get("members", [])),
             "online": widget.get("presence_count", 0),
             "invite": widget.get("instant_invite"),
+            "activeMembersAvailable": bool(widget.get("members")),
         },
         headers={"Cache-Control": "public, max-age=60"},
     )
@@ -444,7 +516,43 @@ async def handle_api_discord_status(request: web.Request) -> web.Response:
 
 async def handle_api_me(request: web.Request) -> web.Response:
     user = await _require_user(request)
-    return web.json_response({"user": user})
+    profile = _profile_for_user(user, request)
+    return web.json_response({"user": user, "profile": _public_profile(profile)})
+
+
+async def handle_api_profile(request: web.Request) -> web.Response:
+    user = await _require_user(request)
+    profile = _profile_for_user(user, request)
+    return web.json_response({"profile": _public_profile(profile)})
+
+
+async def handle_api_profile_update(request: web.Request) -> web.Response:
+    user = await _require_mutating_user(request)
+    try:
+        payload = await request.json()
+    except Exception:
+        raise web.HTTPBadRequest(text="Invalid JSON payload")
+    if not isinstance(payload, dict):
+        raise web.HTTPBadRequest(text="Profile must be a JSON object")
+
+    bio = str(payload.get("bio", "")).strip()
+    subjects = payload.get("subjects", [])
+    private = payload.get("private", True)
+    if not isinstance(subjects, list) or any(not isinstance(item, str) for item in subjects):
+        raise web.HTTPBadRequest(text="Subjects must be a list of text values")
+    subjects = [item.strip() for item in subjects if item.strip()][:8]
+    if len(bio) > 500 or any(len(item) > 60 for item in subjects):
+        raise web.HTTPBadRequest(text="Profile content is too long")
+    if not isinstance(private, bool):
+        raise web.HTTPBadRequest(text="Private must be true or false")
+
+    profile = _profile_for_user(user, request)
+    profile["bio"] = bio
+    profile["subjects"] = subjects
+    profile["private"] = private
+    profile["updated_at"] = datetime.now(timezone.utc).isoformat()
+    save_data(load_data())
+    return web.json_response({"profile": _public_profile(profile)})
 
 
 async def handle_api_csrf(request: web.Request) -> web.Response:
@@ -663,6 +771,10 @@ async def handle_forum_script(request: web.Request) -> web.Response:
     return web.FileResponse(SITE_DIR / "forum.js")
 
 
+async def handle_profile_script(request: web.Request) -> web.Response:
+    return web.FileResponse(SITE_DIR / "profile.js")
+
+
 async def handle_manifest(request: web.Request) -> web.Response:
     manifest = (SITE_DIR / "manifest.webmanifest").read_text(encoding="utf-8")
     return web.Response(text=manifest, content_type="application/manifest+json")
@@ -701,6 +813,12 @@ async def handle_editor(request: web.Request) -> web.Response:
     return web.Response(text=html_text, content_type="text/html")
 
 
+async def handle_profile(request: web.Request) -> web.Response:
+    await _require_user(request)
+    html_text = (SITE_DIR / "profile.html").read_text(encoding="utf-8")
+    return web.Response(text=html_text, content_type="text/html")
+
+
 @web.middleware
 async def _cors_and_security_headers(request: web.Request, handler):
     origin = _cors_origin(request)
@@ -728,7 +846,7 @@ async def _cors_and_security_headers(request: web.Request, handler):
         response.headers["Access-Control-Allow-Origin"] = origin
         response.headers["Access-Control-Allow-Credentials"] = "true"
         response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-CSRF-Token"
-        response.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
+        response.headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,OPTIONS"
         response.headers["Vary"] = "Origin"
     return response
 
@@ -751,6 +869,8 @@ def create_app() -> web.Application:
     app.router.add_get("/callback", handle_callback)
     app.router.add_post("/logout", handle_logout)
     app.router.add_get("/api/me", handle_api_me)
+    app.router.add_get("/api/profile", handle_api_profile)
+    app.router.add_put("/api/profile", handle_api_profile_update)
     app.router.add_get("/api/discord/status", handle_api_discord_status)
     app.router.add_get("/api/csrf", handle_api_csrf)
     app.router.add_get("/api/lessons", handle_api_lessons)
@@ -768,6 +888,8 @@ def create_app() -> web.Application:
     app.router.add_get("/sw.js", handle_service_worker)
     app.router.add_get("/logo.svg", handle_logo)
     app.router.add_get("/editor", handle_editor)
+    app.router.add_get("/profile", handle_profile)
+    app.router.add_get("/profile.js", handle_profile_script)
     app.router.add_post("/admin/save", handle_admin_save)
     app.router.add_get("/admin/load", handle_admin_load)
     app.router.add_post("/admin/content", handle_admin_content)

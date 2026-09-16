@@ -64,6 +64,26 @@ class PiSpaceLoginTests(unittest.IsolatedAsyncioTestCase):
         self.assertIs(data["forum"], forum)
         load_data.assert_called_once_with()
 
+    def test_public_profile_excludes_abuse_metadata(self):
+        profile = {
+            "discord_id": "42",
+            "display_name": "Student",
+            "avatar": "avatar.png",
+            "bio": "Physics learner",
+            "subjects": ["Physics"],
+            "private": True,
+            "joined_at": "2026-01-01T00:00:00+00:00",
+            "updated_at": "2026-01-02T00:00:00+00:00",
+            "last_ip_hash": "sensitive",
+            "ip_hash_expires_at": 9999999999,
+        }
+
+        public_profile = webapp._public_profile(profile)
+
+        self.assertNotIn("last_ip_hash", public_profile)
+        self.assertNotIn("ip_hash_expires_at", public_profile)
+        self.assertEqual(public_profile["private"], True)
+
 
 if __name__ == "__main__":
     unittest.main()

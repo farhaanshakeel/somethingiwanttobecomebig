@@ -71,6 +71,9 @@ the Discord login button works as soon as `webapp.py` is running.
 - `DISCORD_REDIRECT_URI`: OAuth callback URL, for example `http://127.0.0.1:8080/callback`.
 - `SITE_COOKIE_SECURE`: set to `1` when the site is served over HTTPS.
 - `SITE_PORT`: local port for the site server.
+- `PROFILE_IP_HASH_SECRET`: optional secret used to create expiring, non-reversible IP hashes for abuse prevention. Raw IP addresses are not stored.
+- `PROFILE_IP_HASH_TTL`: lifetime of the IP hash in seconds (default: 2592000).
+- `TRUST_PROXY`: set to `1` only when the deployment is behind a trusted proxy that sets `X-Forwarded-For`.
 
 ## Developer
 
