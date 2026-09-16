@@ -20,7 +20,7 @@ import aiohttp
 from aiohttp import web
 from dotenv import load_dotenv
 
-from utils import load_data
+from utils import load_data, save_data
 
 
 load_dotenv()
@@ -472,6 +472,12 @@ def _forum_response(forum: dict) -> dict:
     return {"categories": forum.get("categories", []), "threads": threads}
 
 
+def _save_forum(forum: dict) -> None:
+    data = load_data()
+    data["forum"] = forum
+    save_data(data)
+
+
 async def handle_api_forum(request: web.Request) -> web.Response:
     await _require_user(request)
     return web.json_response(_forum_response(_forum_data()))
@@ -507,7 +513,7 @@ async def handle_api_forum_thread(request: web.Request) -> web.Response:
         "replies": [{"body": body, "created": now, "author": _forum_author(user)}],
     }
     forum["threads"].append(thread)
-    save_data(load_data())
+    _save_forum(forum)
     return web.json_response({"thread": thread}, status=201)
 
 
@@ -532,7 +538,7 @@ async def handle_api_forum_reply(request: web.Request) -> web.Response:
     reply = {"body": body, "created": now, "author": _forum_author(user)}
     thread.setdefault("replies", []).append(reply)
     thread["updated"] = now
-    save_data(load_data())
+    _save_forum(forum)
     return web.json_response({"thread": thread}, status=201)
 
 
@@ -585,18 +591,7 @@ async def handle_admin_save(request: web.Request) -> web.Response:
     if not path or content is None:
         raise web.HTTPBadRequest(text="Missing 'path' or 'content' in payload")
 
-    # Normalize target path and ensure it's inside the repository root.
-    target = (ROOT_DIR / path.lstrip("/"))
-    try:
-        target_resolved = target.resolve()
-    except Exception:
-        raise web.HTTPBadRequest(text="Invalid path")
-
-    try:
-        site_root_resolved = SITE_DIR.resolve()
-        target_resolved.relative_to(site_root_resolved)
-    except Exception:
-        raise web.HTTPBadRequest(text="Only files inside the site directory can be edited")
+    target_resolved = _resolve_site_file(path)
 
     # Ensure parent directories exist and write file
     try:
@@ -606,6 +601,28 @@ async def handle_admin_save(request: web.Request) -> web.Response:
         raise web.HTTPInternalServerError(text=f"Failed to write file: {exc}")
 
     return web.json_response({"ok": True, "path": str(target_resolved.relative_to(SITE_DIR.resolve()))})
+
+
+def _resolve_site_file(path: str) -> Path:
+    target = ROOT_DIR / path.lstrip("/")
+    try:
+        target_resolved = target.resolve()
+        target_resolved.relative_to(SITE_DIR.resolve())
+    except Exception:
+        raise web.HTTPBadRequest(text="Only files inside the site directory can be edited")
+    return target_resolved
+
+
+async def handle_admin_load(request: web.Request) -> web.Response:
+    await _require_editor_request(request)
+    target = _resolve_site_file(request.query.get("path", ""))
+    if not target.is_file():
+        raise web.HTTPNotFound(text="Site file not found")
+    try:
+        content = target.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise web.HTTPInternalServerError(text=f"Failed to read file: {exc}")
+    return web.json_response({"path": str(target.relative_to(SITE_DIR.resolve())), "content": content})
 
 
 async def handle_styles(request: web.Request) -> web.Response:
@@ -692,7 +709,7 @@ async def _cors_and_security_headers(request: web.Request, handler):
     if origin:
         response.headers["Access-Control-Allow-Origin"] = origin
         response.headers["Access-Control-Allow-Credentials"] = "true"
-        response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-CSRF-Token"
         response.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
         response.headers["Vary"] = "Origin"
     return response
@@ -734,6 +751,7 @@ def create_app() -> web.Application:
     app.router.add_get("/logo.svg", handle_logo)
     app.router.add_get("/editor", handle_editor)
     app.router.add_post("/admin/save", handle_admin_save)
+    app.router.add_get("/admin/load", handle_admin_load)
     app.router.add_post("/admin/content", handle_admin_content)
     return app
 

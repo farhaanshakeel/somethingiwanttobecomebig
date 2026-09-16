@@ -1,5 +1,6 @@
 import json
 import unittest
+from unittest import mock
 
 from aiohttp import web
 
@@ -51,6 +52,17 @@ class PiSpaceLoginTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn('href="/styles.css"', body)
         self.assertIn('src="/auth.js"', body)
         self.assertIn('href="/index.html"', body)
+
+    def test_forum_save_preserves_shared_data(self):
+        data = {"lessons": [], "forum": {"categories": [], "threads": []}}
+        with mock.patch.object(webapp, "load_data", return_value=data) as load_data:
+            with mock.patch.object(webapp, "save_data") as save_data:
+                forum = {"categories": ["Ideas"], "threads": [{"id": "thread-1"}]}
+                webapp._save_forum(forum)
+
+        self.assertIs(save_data.call_args.args[0], data)
+        self.assertIs(data["forum"], forum)
+        load_data.assert_called_once_with()
 
 
 if __name__ == "__main__":
