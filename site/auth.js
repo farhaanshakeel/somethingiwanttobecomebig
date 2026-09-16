@@ -148,8 +148,6 @@ async function mountDiscordServerStatus(containerId) {
   const message = container.querySelector("[data-server-status-message]");
   const link = container.querySelector("[data-server-status-link]");
   const dot = container.querySelector(".server-status-dot");
-  const activeMembers = container.parentElement.querySelector("[data-active-members]");
-  const activeMembersList = container.parentElement.querySelector("[data-active-members-list]");
 
   try {
     const response = await fetch(buildTriangleApiUrl("/api/discord/status"), {
@@ -162,28 +160,6 @@ async function mountDiscordServerStatus(containerId) {
     const memberCount = Number.isFinite(status.members) ? ` · ${status.members} members` : "";
     message.textContent = `${status.online} online now${memberCount}`;
     dot.classList.add("is-online");
-    if (activeMembers && activeMembersList && Array.isArray(status.activeMembers) && status.activeMembers.length) {
-      activeMembers.hidden = false;
-      activeMembersList.replaceChildren();
-      status.activeMembers.forEach((member) => {
-        const item = document.createElement("span");
-        item.className = "active-member";
-        item.title = `${member.name} is active`;
-        if (member.avatar) {
-          const avatar = document.createElement("img");
-          avatar.src = member.avatar;
-          avatar.alt = "";
-          item.appendChild(avatar);
-        }
-        const name = document.createElement("span");
-        name.textContent = member.name;
-        item.appendChild(name);
-        activeMembersList.appendChild(item);
-      });
-    } else if (activeMembers && activeMembersList && status.activeMembersAvailable === false) {
-      activeMembers.hidden = false;
-      activeMembersList.textContent = "Member names are unavailable until the Discord Server Widget is enabled.";
-    }
     if (status.invite) {
       link.href = status.invite;
     }
