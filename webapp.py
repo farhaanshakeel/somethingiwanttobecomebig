@@ -334,10 +334,12 @@ async def _require_editor_request(request: web.Request) -> dict:
         raise web.HTTPForbidden(text="Cross-site request blocked")
     session = AUTH.get_session(request.cookies.get(SESSION_COOKIE))
     csrf_token = request.headers.get("X-CSRF-Token")
-    if not session or not csrf_token or not secrets.compare_digest(
-        csrf_token, session.get("csrf_token", "")
-    ):
-        raise web.HTTPForbidden(text="CSRF validation failed")
+    if not session:
+        raise web.HTTPForbidden(text="CSRF validation failed: session expired")
+    if not csrf_token:
+        raise web.HTTPForbidden(text="CSRF validation failed: token missing")
+    if not secrets.compare_digest(csrf_token, session.get("csrf_token", "")):
+        raise web.HTTPForbidden(text="CSRF validation failed: token expired")
     return user
 
 
@@ -347,10 +349,12 @@ async def _require_mutating_user(request: web.Request) -> dict:
         raise web.HTTPForbidden(text="Cross-site request blocked")
     session = AUTH.get_session(request.cookies.get(SESSION_COOKIE))
     csrf_token = request.headers.get("X-CSRF-Token")
-    if not session or not csrf_token or not secrets.compare_digest(
-        csrf_token, session.get("csrf_token", "")
-    ):
-        raise web.HTTPForbidden(text="CSRF validation failed")
+    if not session:
+        raise web.HTTPForbidden(text="CSRF validation failed: session expired")
+    if not csrf_token:
+        raise web.HTTPForbidden(text="CSRF validation failed: token missing")
+    if not secrets.compare_digest(csrf_token, session.get("csrf_token", "")):
+        raise web.HTTPForbidden(text="CSRF validation failed: token expired")
     return user
 
 
