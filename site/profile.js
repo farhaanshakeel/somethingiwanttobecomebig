@@ -17,6 +17,19 @@ async function mountTriangleProfile() {
     const completed = [bio, subjects.length].filter(Boolean).length;
     document.getElementById("profile-completion").textContent = `Profile completion: ${completed}/2 · ${bio.length}/500 bio characters`;
   };
+  async function csrfFetch(path, options, csrfToken) {
+    const requestOptions = { ...options, credentials: "include", headers: { ...(options.headers || {}), "X-CSRF-Token": csrfToken } };
+    let response = await fetch(profileApiUrl(path), requestOptions);
+    if (response.status === 403) {
+      const tokenResponse = await fetch(profileApiUrl("/api/csrf"), { credentials: "include", cache: "no-store" });
+      if (tokenResponse.ok) {
+        const refreshedToken = (await tokenResponse.json()).token;
+        requestOptions.headers["X-CSRF-Token"] = refreshedToken;
+        response = await fetch(profileApiUrl(path), requestOptions);
+      }
+    }
+    return response;
+  }
   try {
     const csrfResponse = await fetch(profileApiUrl("/api/csrf"), { credentials: "include", cache: "no-store" });
     if (!csrfResponse.ok) throw new Error("Your login session has expired.");
@@ -38,10 +51,10 @@ async function mountTriangleProfile() {
       const button = form.querySelector("button[type='submit']");
       button.disabled = true;
       try {
-        const saveResponse = await fetch(profileApiUrl("/api/profile"), {
+        const saveResponse = await csrfFetch("/api/profile", {
           method: "PUT",
           credentials: "include",
-          headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             bio: document.getElementById("profile-bio").value,
             subjects: [...new Set(document.getElementById("profile-subjects").value.split(",").map((item) => item.trim()).filter(Boolean))],
