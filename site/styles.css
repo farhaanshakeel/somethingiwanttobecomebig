@@ -81,6 +81,15 @@ p { margin: 0 0 1em; }
 .server-status-light { background: var(--paper-deep); border-color: var(--line); }
 .server-status-light .server-status-copy strong { color: var(--teal); }
 .server-status-light .server-status-copy span { color: var(--muted); }
+.active-members { border-top: 1px solid rgba(255, 255, 255, .18); display: grid; gap: 8px; margin-top: 12px; padding-top: 12px; position: relative; z-index: 1; }
+.server-status-light + .active-members { border-top-color: var(--line); }
+.active-members > strong { color: #fff8ef; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; }
+.server-status-light + .active-members > strong { color: var(--teal); }
+[data-active-members-list] { display: flex; flex-wrap: wrap; gap: 7px; }
+.active-member { align-items: center; background: rgba(255, 253, 248, .12); border: 1px solid rgba(255, 255, 255, .16); display: inline-flex; gap: 6px; max-width: 180px; padding: 4px 8px 4px 4px; }
+.server-status-light + .active-members .active-member { background: var(--paper); border-color: var(--line); }
+.active-member img { border-radius: 50%; height: 24px; object-fit: cover; width: 24px; }
+.active-member span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lesson-live { display: flex; flex-direction: column; gap: 10px; }
 .lesson-meta { margin: 0; }
 .lesson-summary { color: var(--ink); margin: 0; white-space: pre-wrap; }

@@ -394,12 +394,30 @@ async def handle_api_discord_status(request: web.Request) -> web.Response:
             async with session.get(guild_url, headers=headers) as guild_response:
                 if guild_response.status == 200:
                     guild = await guild_response.json()
+                    active_members = []
+                    widget_url = DISCORD_WIDGET_URL.format(guild_id=DISCORD_GUILD_ID)
+                    try:
+                        async with session.get(widget_url) as widget_response:
+                            if widget_response.status == 200:
+                                widget = await widget_response.json()
+                                active_members = [
+                                    {
+                                        "id": str(member.get("id", "")),
+                                        "name": member.get("username", "Community member"),
+                                        "avatar": member.get("avatar_url", ""),
+                                        "status": member.get("status", "online"),
+                                    }
+                                    for member in widget.get("members", [])[:12]
+                                ]
+                    except (aiohttp.ClientError, TimeoutError, ValueError):
+                        pass
                     return web.json_response(
                         {
                             "available": True,
                             "name": guild.get("name", "Discord server"),
                             "members": guild.get("approximate_member_count", 0),
                             "online": guild.get("approximate_presence_count", 0),
+                            "activeMembers": active_members,
                         },
                         headers={"Cache-Control": "public, max-age=60"},
                     )
