@@ -184,9 +184,11 @@ async def _current_user(request: web.Request) -> dict | None:
     return session["user"]
 
 
-async def _render_site_page(request: web.Request, page_name: str) -> web.Response:
+async def _render_site_page(
+    request: web.Request, page_name: str, require_auth: bool = True
+) -> web.Response:
     user = await _current_user(request)
-    if user is None:
+    if require_auth and user is None:
         next_path = _safe_next_path(request.path_qs if request.path_qs else request.path)
         raise web.HTTPFound(f"/login?{urlencode({'next': next_path})}")
 
@@ -278,7 +280,7 @@ async def handle_forum(request: web.Request) -> web.Response:
 
 
 async def handle_terms(request: web.Request) -> web.Response:
-    return await _render_site_page(request, "terms_and_policies.html")
+    return await _render_site_page(request, "terms_and_policies.html", require_auth=False)
 
 
 async def handle_login(request: web.Request) -> web.Response:

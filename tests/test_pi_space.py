@@ -1,3 +1,4 @@
+import json
 import unittest
 
 from aiohttp import web
@@ -40,7 +41,16 @@ class PiSpaceLoginTests(unittest.IsolatedAsyncioTestCase):
             webapp.DISCORD_GUILD_ID = original_guild_id
 
         self.assertEqual(response.status, 503)
-        self.assertEqual(response.json()["available"], False)
+        self.assertEqual(json.loads(response.body)["available"], False)
+
+    async def test_terms_page_is_public_and_uses_server_routes(self):
+        response = await webapp.handle_terms(DummyRequest(path="/terms_and_policies.html"))
+        body = response.body.decode("utf-8")
+
+        self.assertEqual(response.status, 200)
+        self.assertIn('href="/styles.css"', body)
+        self.assertIn('src="/auth.js"', body)
+        self.assertIn('href="/index.html"', body)
 
 
 if __name__ == "__main__":
