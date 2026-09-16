@@ -191,6 +191,8 @@ def _profile_for_user(user: dict, request: web.Request | None = None) -> dict:
             "bio": "",
             "subjects": [],
             "private": True,
+            "moderation_status": "normal",
+            "moderation_note": "",
             "joined_at": now,
             "updated_at": now,
         },
@@ -199,6 +201,8 @@ def _profile_for_user(user: dict, request: web.Request | None = None) -> dict:
     profile["username"] = user.get("username", "")
     profile["global_name"] = user.get("global_name", "")
     profile["discriminator"] = user.get("discriminator", "")
+    profile.setdefault("moderation_status", "normal")
+    profile.setdefault("moderation_note", "")
     profile["avatar"] = _avatar_url(user)
     if request is not None:
         profile["last_seen_at"] = now
@@ -242,6 +246,8 @@ def _admin_profile(profile: dict) -> dict:
             "joined_at",
             "updated_at",
             "last_seen_at",
+            "moderation_status",
+            "moderation_note",
         )
     }
 
@@ -744,6 +750,31 @@ async def handle_admin_profiles(request: web.Request) -> web.Response:
     return web.json_response({"profiles": records})
 
 
+async def handle_admin_profile_update(request: web.Request) -> web.Response:
+    await _require_editor_request(request)
+    discord_id = request.match_info["discord_id"]
+    try:
+        payload = await request.json()
+    except Exception:
+        raise web.HTTPBadRequest(text="Invalid JSON payload")
+    status = payload.get("moderation_status")
+    note = str(payload.get("moderation_note", "")).strip()
+    if status not in {"normal", "review", "restricted"}:
+        raise web.HTTPBadRequest(text="Invalid moderation status")
+    if len(note) > 300:
+        raise web.HTTPBadRequest(text="Moderation note is too long")
+
+    data = load_data()
+    profile = data.setdefault("web_profiles", {}).get(discord_id)
+    if profile is None:
+        raise web.HTTPNotFound(text="Profile not found")
+    profile["moderation_status"] = status
+    profile["moderation_note"] = note
+    profile["updated_at"] = datetime.now(timezone.utc).isoformat()
+    save_data(data)
+    return web.json_response({"profile": _admin_profile(profile)})
+
+
 async def handle_admin_save(request: web.Request) -> web.Response:
     """Save a site file. Only accessible to the configured site editor.
 
@@ -940,6 +971,7 @@ def create_app() -> web.Application:
     app.router.add_get("/admin/load", handle_admin_load)
     app.router.add_post("/admin/content", handle_admin_content)
     app.router.add_get("/admin/profiles", handle_admin_profiles)
+    app.router.add_put("/admin/profiles/{discord_id}", handle_admin_profile_update)
     return app
 
 
