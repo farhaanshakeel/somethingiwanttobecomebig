@@ -90,6 +90,7 @@ p { margin: 0 0 1em; }
 .server-status-light + .active-members .active-member { background: var(--paper); border-color: var(--line); }
 .active-member img { border-radius: 50%; height: 24px; object-fit: cover; width: 24px; }
 .active-member span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.discord-widget { border: 0; display: block; height: 500px; margin-top: 16px; max-width: 100%; width: 350px; }
 .profile-identity { align-items: center; display: flex; gap: 16px; margin-bottom: 24px; }
 .profile-identity .profile-image { border-radius: 50%; height: 64px; object-fit: cover; width: 64px; }
 .profile-identity h2 { margin: 0; }

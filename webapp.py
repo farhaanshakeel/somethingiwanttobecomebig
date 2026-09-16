@@ -834,6 +834,7 @@ async def _cors_and_security_headers(request: web.Request, handler):
         "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
         "font-src 'self' data: https://cdn.jsdelivr.net; "
         "connect-src 'self'; "
+        "frame-src 'self' https://discord.com; "
         "frame-ancestors 'none'; "
         "base-uri 'self'"
     )
