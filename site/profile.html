@@ -28,9 +28,10 @@
     <section class="card profile-panel">
       <div id="profile-status" class="editor-status" role="status"></div>
       <form id="profile-form">
-        <div class="profile-identity"><img id="profile-avatar" class="profile-image" src="logo.svg" alt="" /><div><h2 id="profile-name">Loading profile...</h2><p class="small">Discord identity is managed by Discord and cannot be edited here.</p></div></div>
+        <div class="profile-identity"><img id="profile-avatar" class="profile-image" src="logo.svg" alt="" /><div><h2 id="profile-name">Loading profile...</h2><p id="profile-meta" class="small">Discord identity is managed by Discord and cannot be edited here.</p></div></div>
         <label>Bio<textarea id="profile-bio" maxlength="500" rows="5" placeholder="Tell the community what you are learning."></textarea></label>
-        <label>Subjects<input id="profile-subjects" maxlength="480" placeholder="Mathematics, Physics, IOQM"></label>
+        <label>Subjects<input id="profile-subjects" maxlength="480" placeholder="Mathematics, Physics, IOQM"><span class="field-hint">Separate subjects with commas. Up to 8 subjects.</span></label>
+        <div id="profile-completion" class="profile-completion" aria-live="polite"></div>
         <label class="profile-privacy"><input id="profile-private" type="checkbox" checked> Keep my profile private</label>
         <button class="auth-link auth-link-login" type="submit">Save profile</button>
       </form>

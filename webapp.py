@@ -540,7 +540,15 @@ async def handle_api_profile_update(request: web.Request) -> web.Response:
     private = payload.get("private", True)
     if not isinstance(subjects, list) or any(not isinstance(item, str) for item in subjects):
         raise web.HTTPBadRequest(text="Subjects must be a list of text values")
-    subjects = [item.strip() for item in subjects if item.strip()][:8]
+    unique_subjects = []
+    seen_subjects = set()
+    for item in subjects:
+        subject = item.strip()
+        subject_key = subject.casefold()
+        if subject and subject_key not in seen_subjects:
+            unique_subjects.append(subject)
+            seen_subjects.add(subject_key)
+    subjects = unique_subjects[:8]
     if len(bio) > 500 or any(len(item) > 60 for item in subjects):
         raise web.HTTPBadRequest(text="Profile content is too long")
     if not isinstance(private, bool):

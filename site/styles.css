@@ -86,6 +86,8 @@ p { margin: 0 0 1em; }
 .profile-identity .profile-image { border-radius: 50%; height: 64px; object-fit: cover; width: 64px; }
 .profile-identity h2 { margin: 0; }
 .profile-privacy { align-items: center; display: flex; gap: 8px; }
+.field-hint { color: var(--muted); display: block; font-size: .82rem; margin-top: 6px; }
+.profile-completion { background: var(--paper-deep); border: 1px solid var(--line); color: var(--muted); font-size: .86rem; margin: 16px 0; padding: 10px 12px; }
 .lesson-live { display: flex; flex-direction: column; gap: 10px; }
 .lesson-meta { margin: 0; }
 .lesson-summary { color: var(--ink); margin: 0; white-space: pre-wrap; }
