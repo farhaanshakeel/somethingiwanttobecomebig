@@ -820,7 +820,9 @@ def _resolve_site_file(path: str) -> Path:
 
 
 async def handle_admin_load(request: web.Request) -> web.Response:
-    await _require_editor_request(request)
+    user = await _require_user(request)
+    if not _is_site_editor(user):
+        raise web.HTTPForbidden(text="Editor access required")
     target = _resolve_site_file(request.query.get("path", ""))
     if not target.is_file():
         raise web.HTTPNotFound(text="Site file not found")

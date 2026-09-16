@@ -18,6 +18,7 @@ async function mountTriangleProfile() {
     document.getElementById("profile-completion").textContent = `Profile completion: ${completed}/2 · ${bio.length}/500 bio characters`;
   };
   async function csrfFetch(path, options, csrfToken) {
+    if (!csrfToken) throw new Error("Your login session has expired. Sign in again.");
     const requestOptions = { ...options, credentials: "include", headers: { ...(options.headers || {}), "X-CSRF-Token": csrfToken } };
     let response = await fetch(profileApiUrl(path), requestOptions);
     if (response.status === 403) {
