@@ -91,6 +91,24 @@ class PiSpaceLoginTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn("ip_hash_expires_at", public_profile)
         self.assertEqual(public_profile["private"], True)
 
+    def test_admin_profile_excludes_network_metadata(self):
+        profile = {
+            "discord_id": "42",
+            "display_name": "Student",
+            "username": "student",
+            "bio": "Physics learner",
+            "subjects": ["Physics"],
+            "private": True,
+            "last_ip_hash": "sensitive",
+            "ip_hash_expires_at": 9999999999,
+        }
+
+        admin_profile = webapp._admin_profile(profile)
+
+        self.assertEqual(admin_profile["discord_id"], "42")
+        self.assertNotIn("last_ip_hash", admin_profile)
+        self.assertNotIn("ip_hash_expires_at", admin_profile)
+
 
 if __name__ == "__main__":
     unittest.main()

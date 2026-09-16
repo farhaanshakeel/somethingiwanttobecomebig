@@ -28,6 +28,11 @@
       <p class="small">Update visible site content, add profiles, and publish changes without touching HTML or Python.</p>
       <div id="editor-status" class="editor-status" role="status"></div>
     </section>
+    <section class="card editor-panel">
+      <div class="editor-panel-heading"><div><div class="section-label">Members</div><h2>Member profiles</h2></div><span id="admin-profile-count" class="small"></span></div>
+      <label class="editor-search">Search members<input id="admin-profile-search" type="search" placeholder="Name, username, or Discord ID"></label>
+      <div id="admin-profiles" class="editor-list"><p class="small">Loading member profiles...</p></div>
+    </section>
     <form id="content-form">
       <section class="card editor-panel">
         <div class="editor-panel-heading"><div><div class="section-label">Identity</div><h2>Brand and banner</h2></div><button class="auth-link auth-link-login" type="submit">Publish changes</button></div>
@@ -77,6 +82,24 @@
       const list = document.getElementById("profiles-editor");
       list.innerHTML = (content.profiles || []).map((profile, index) => `<article class="editor-profile"><div class="editor-profile-heading"><strong>Profile ${index + 1}</strong><button type="button" class="remove-profile" data-index="${index}">Remove</button></div><div class="editor-fields"><label>Name<input data-profile="name" data-index="${index}" value="${escapeHtml(profile.name || "")}" required></label><label>Image URL<input data-profile="imageUrl" data-index="${index}" value="${escapeHtml(profile.imageUrl || "")}"></label><label class="field-wide">Description<textarea data-profile="description" data-index="${index}" rows="3">${escapeHtml(profile.description || "")}</textarea></label><label>Link text<input data-profile="linkText" data-index="${index}" value="${escapeHtml(profile.linkText || "View profile")}"></label><label>Link URL<input data-profile="linkUrl" data-index="${index}" value="${escapeHtml(profile.linkUrl || "")}"></label></div></article>`).join("") || '<p class="small">No profiles yet. Add one above.</p>';
     }
+    function renderAdminProfiles(profiles) {
+      const list = document.getElementById("admin-profiles");
+      const query = document.getElementById("admin-profile-search").value.trim().toLowerCase();
+      const visible = profiles.filter((profile) => `${profile.display_name || ""} ${profile.username || ""} ${profile.discord_id || ""}`.toLowerCase().includes(query));
+      document.getElementById("admin-profile-count").textContent = `${visible.length} of ${profiles.length} member${profiles.length === 1 ? "" : "s"}`;
+      list.replaceChildren();
+      if (!visible.length) { list.appendChild(Object.assign(document.createElement("p"), { className: "small", textContent: "No matching profiles." })); return; }
+      visible.forEach((profile) => {
+        const article = document.createElement("article");
+        article.className = "admin-profile-row";
+        const avatar = document.createElement("img"); avatar.className = "admin-profile-avatar"; avatar.src = profile.avatar || "logo.svg"; avatar.alt = "";
+        const details = document.createElement("div");
+        const name = document.createElement("strong"); name.textContent = profile.display_name || profile.username || "Discord member";
+        const identity = document.createElement("p"); identity.className = "small"; identity.textContent = `@${profile.username || "unknown"} · Discord ID ${profile.discord_id || "unknown"}`;
+        const info = document.createElement("p"); info.className = "small"; info.textContent = `${profile.private ? "Private profile" : "Visible profile"} · ${profile.subjects?.join(", ") || "No subjects"}${profile.bio ? ` · ${profile.bio}` : ""}`;
+        details.append(name, identity, info); article.append(avatar, details); list.appendChild(article);
+      });
+    }
     function escapeHtml(value) { return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;"); }
     function renderForm() { document.querySelectorAll("[data-path]").forEach((field) => { const value = getValue(content, field.dataset.path); if (field.type === "checkbox") field.checked = Boolean(value); else field.value = value ?? ""; }); renderProfiles(); renderPageFields(); }
     document.getElementById("content-form").addEventListener("input", (event) => { const field = event.target; if (field.dataset.path) setValue(content, field.dataset.path, field.type === "checkbox" ? field.checked : field.value); if (field.dataset.profile) content.profiles[Number(field.dataset.index)][field.dataset.profile] = field.value; if (field.dataset.pageKey) setValue(content, `pages.${activePage}.${field.dataset.pageKey}`, field.dataset.pageKey === "howItWorksItems" ? field.value.split("\n").map((item) => item.trim()).filter(Boolean) : field.value); });
@@ -88,7 +111,8 @@
     async function readError(response, fallback) { const message = await response.text(); return message || fallback; }
     document.getElementById("load-btn").addEventListener("click", async () => { const path = document.getElementById("file-path").value.trim(); if (!path) { status("Enter a site file path first.", true); return; } try { const response = await fetch(editorApiUrl(`/admin/load?path=${encodeURIComponent(path)}`), { credentials: "include", headers: { "X-CSRF-Token": csrfToken } }); if (!response.ok) throw new Error(await readError(response, "File could not be loaded.")); document.getElementById("file-content").value = (await response.json()).content; status("File loaded."); } catch (error) { status(error.message, true); } });
     document.getElementById("save-btn").addEventListener("click", async () => { try { const response = await fetch(editorApiUrl("/admin/save"), { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken }, body: JSON.stringify({ path: document.getElementById("file-path").value.trim(), content: document.getElementById("file-content").value }) }); if (!response.ok) throw new Error(await readError(response, "File save failed.")); status("File saved."); } catch (error) { status(error.message, true); } });
-    async function startEditor() { try { const tokenResponse = await fetch(editorApiUrl("/api/csrf"), { credentials: "include", cache: "no-store" }); if (!tokenResponse.ok) throw new Error("Your editor session has expired. Sign in again."); csrfToken = (await tokenResponse.json()).token; const response = await fetch(editorApiUrl("/api/site-content"), { credentials: "include", cache: "no-store" }); if (!response.ok) throw new Error(await readError(response, "Could not load content.")); content = await response.json(); renderForm(); } catch (error) { status(error.message, true); } }
+    document.getElementById("admin-profile-search").addEventListener("input", () => { if (window.adminProfiles) renderAdminProfiles(window.adminProfiles); });
+    async function startEditor() { try { const tokenResponse = await fetch(editorApiUrl("/api/csrf"), { credentials: "include", cache: "no-store" }); if (!tokenResponse.ok) throw new Error("Your editor session has expired. Sign in again."); csrfToken = (await tokenResponse.json()).token; const response = await fetch(editorApiUrl("/api/site-content"), { credentials: "include", cache: "no-store" }); if (!response.ok) throw new Error(await readError(response, "Could not load content.")); content = await response.json(); renderForm(); const profilesResponse = await fetch(editorApiUrl("/admin/profiles"), { credentials: "include", cache: "no-store" }); if (!profilesResponse.ok) throw new Error(await readError(profilesResponse, "Could not load member profiles.")); window.adminProfiles = (await profilesResponse.json()).profiles || []; renderAdminProfiles(window.adminProfiles); } catch (error) { status(error.message, true); } }
     mountTriangleAuthWidget("auth-widget"); startEditor();
   </script>
 </body>

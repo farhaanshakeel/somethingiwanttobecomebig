@@ -139,6 +139,10 @@ footer { color: var(--muted); font-size: .9rem; padding: 18px 20px 32px; text-al
 .editor-profile { background: var(--paper-deep); border: 1px solid var(--line); border-radius: 6px; padding: 16px; }
 .editor-profile-heading { align-items: center; display: flex; justify-content: space-between; }
 .remove-profile { background: transparent; border: 0; color: #b42318; cursor: pointer; font-weight: 800; }
+.editor-search { display: block; margin-bottom: 16px; }
+.admin-profile-row { align-items: flex-start; background: var(--paper-deep); border: 1px solid var(--line); border-radius: 6px; display: flex; gap: 12px; padding: 12px; }
+.admin-profile-avatar { border-radius: 50%; height: 44px; object-fit: cover; width: 44px; }
+.admin-profile-row p { margin: 4px 0 0; }
 .editor-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0; }
 .editor-tab { background: var(--paper); border: 1px solid var(--line); border-radius: 4px; cursor: pointer; font-weight: 800; padding: 9px 14px; }
 .editor-tab.active, .editor-tab:hover { background: var(--teal); border-color: var(--teal); color: #fff; }

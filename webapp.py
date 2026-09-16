@@ -184,6 +184,9 @@ def _profile_for_user(user: dict, request: web.Request | None = None) -> dict:
         {
             "discord_id": user_id,
             "display_name": _display_name(user),
+            "username": user.get("username", ""),
+            "global_name": user.get("global_name", ""),
+            "discriminator": user.get("discriminator", ""),
             "avatar": _avatar_url(user),
             "bio": "",
             "subjects": [],
@@ -193,6 +196,9 @@ def _profile_for_user(user: dict, request: web.Request | None = None) -> dict:
         },
     )
     profile["display_name"] = _display_name(user)
+    profile["username"] = user.get("username", "")
+    profile["global_name"] = user.get("global_name", "")
+    profile["discriminator"] = user.get("discriminator", "")
     profile["avatar"] = _avatar_url(user)
     if request is not None:
         profile["last_seen_at"] = now
@@ -216,6 +222,26 @@ def _public_profile(profile: dict) -> dict:
             "private",
             "joined_at",
             "updated_at",
+        )
+    }
+
+
+def _admin_profile(profile: dict) -> dict:
+    return {
+        key: profile.get(key)
+        for key in (
+            "discord_id",
+            "display_name",
+            "username",
+            "global_name",
+            "discriminator",
+            "avatar",
+            "bio",
+            "subjects",
+            "private",
+            "joined_at",
+            "updated_at",
+            "last_seen_at",
         )
     }
 
@@ -707,6 +733,17 @@ async def handle_admin_content(request: web.Request) -> web.Response:
     return web.json_response({"ok": True})
 
 
+async def handle_admin_profiles(request: web.Request) -> web.Response:
+    await _require_editor_request(request)
+    profiles = load_data().get("web_profiles", {})
+    records = sorted(
+        (_admin_profile(profile) for profile in profiles.values()),
+        key=lambda profile: profile.get("last_seen_at") or profile.get("joined_at") or "",
+        reverse=True,
+    )
+    return web.json_response({"profiles": records})
+
+
 async def handle_admin_save(request: web.Request) -> web.Response:
     """Save a site file. Only accessible to the configured site editor.
 
@@ -902,6 +939,7 @@ def create_app() -> web.Application:
     app.router.add_post("/admin/save", handle_admin_save)
     app.router.add_get("/admin/load", handle_admin_load)
     app.router.add_post("/admin/content", handle_admin_content)
+    app.router.add_get("/admin/profiles", handle_admin_profiles)
     return app
 
 
