@@ -5,22 +5,25 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Pi-space Academy</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#173f46">
 </head>
 <body>
   <header class="header">
     <div class="wrap header-inner">
       <a class="site-brand" href="index.html" aria-label="Pi-space home">
         <span class="site-logo-wrap">
-          <img class="site-logo" src="logo.png" alt="Pi-space community logo" onerror="this.hidden=true;" />
+          <img class="site-logo" data-content="brand.logoUrl" src="logo.svg" alt="Pi-space community logo" />
         </span>
         <span class="site-brand-copy">
-          <span class="site-brand-name">Pi-space</span>
+          <span class="site-brand-name" data-content="brand.name">Pi-space</span>
           
         </span>
       </a>
       <nav class="site-nav" aria-label="Primary navigation">
         <a href="index.html" aria-current="page">Home</a>
         <a href="lessons.html">Lessons</a>
+        <a href="forum.html">Forum</a>
         <a href="activities.html">Activities</a>
         <a href="../terms_and_policies.html">Terms</a>
       </nav>
@@ -30,21 +33,39 @@
 
   <script src="site-config.js"></script>
   <script src="auth.js"></script>
+  <script src="content.js"></script>
+  <script src="pwa.js"></script>
 
   <main class="wrap main">
-    <section class="card hero">
-      <div class="section-label">Welcome</div>
-      <h2>Pi-space </h2>
+    <section class="card hero" id="site-banner">
+      <div class="section-label" data-content="banner.eyebrow">Pi-space Academy</div>
+      <h2 data-content="banner.title">Learn together. Go further.</h2>
       <div class="hero-copy">
-        <p>A structured learning and studying community for students who want to get better at their Mathematics and Physics skills and stand out, while also preparing for examinations like olympiads, for example IOQM, RMO, or IMO, and more. It is a non-profit community, providing everything free of cost.</p>
-        <p class="small"> Join the discord community, the main place for community interaction.</p>
+        <p data-content="banner.text">A free Mathematics and Physics community for ambitious students.</p>
+        <img data-content="banner.image" class="banner-image" hidden alt="" />
+        <p><a data-content="banner.button" class="auth-link auth-link-login" href="https://discord.gg/qCHFRHedR">Join the community</a></p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-label">About</div>
+      <h2 data-content="pages.home.heroTitle">Pi-space</h2>
+      <p data-content="pages.home.heroText">A structured learning and studying community for students who want to get better at their Mathematics and Physics skills and stand out, while also preparing for examinations like olympiads, for example IOQM, RMO, or IMO, and more. It is a non-profit community, providing everything free of cost.</p>
+      <p class="small" data-content="pages.home.heroSmall">Join the Discord community, the main place for community interaction.</p>
+      <div class="server-status server-status-light" id="discord-server-status-home" aria-live="polite">
+        <span class="server-status-dot" aria-hidden="true"></span>
+        <span class="server-status-copy">
+          <strong>Discord community</strong>
+          <span data-server-status-message>Checking server status...</span>
+        </span>
+        <a class="auth-link auth-link-login" data-server-status-link href="https://discord.gg/qCHFRHedR">Join server</a>
       </div>
     </section>
 
     <div id="site-editor-note"></div>
 
     <section class="card">
-      <h2>Highlights</h2>
+      <h2 data-content="pages.home.highlightsTitle">Highlights</h2>
       <div class="feature-grid">
         <a class="feature-link" href="lessons.html">
           <span class="feature-label">Lessons</span>
@@ -65,8 +86,8 @@
     </section>
 
     <section class="card">
-      <h2>How It Works</h2>
-      <ol>
+      <h2 data-content="pages.home.howItWorksTitle">How It Works</h2>
+      <ol data-content-list="pages.home.howItWorksItems">
         <li>Join the site with Discord for a secure student profile.</li>
         <li>Browse the academy tracks and open course pages.</li>
         <li>Use the bot for study groups, teacher posts, and guided practice.</li>
@@ -74,7 +95,7 @@
     </section>
 
     <section class="card">
-      <h2>What’s in the Academy</h2>
+      <h2 data-content="pages.home.academyTitle">What's in the Academy</h2>
       <div class="grid">
         <div class="lesson-card">
           <h3>Structured Courses</h3>
@@ -90,6 +111,11 @@
         </div>
       </div>
     </section>
+
+    <section class="card" id="profiles-section">
+      <h2>People &amp; Profiles</h2>
+      <div id="site-profiles" class="grid"></div>
+    </section>
   </main>
 
   <footer>
@@ -99,6 +125,8 @@
   <script>
     mountTriangleAuthWidget("auth-widget");
     mountTriangleEditorNote("site-editor-note");
+    mountTriangleContent("home");
+    mountDiscordServerStatus("discord-server-status-home");
   </script>
 </body>
 </html>

@@ -31,6 +31,17 @@ class PiSpaceLoginTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("Pi-space", body)
         self.assertIn("Sign in with Discord", body)
 
+    async def test_discord_status_requires_configured_guild(self):
+        original_guild_id = webapp.DISCORD_GUILD_ID
+        webapp.DISCORD_GUILD_ID = ""
+        try:
+            response = await webapp.handle_api_discord_status(DummyRequest())
+        finally:
+            webapp.DISCORD_GUILD_ID = original_guild_id
+
+        self.assertEqual(response.status, 503)
+        self.assertEqual(response.json()["available"], False)
+
 
 if __name__ == "__main__":
     unittest.main()

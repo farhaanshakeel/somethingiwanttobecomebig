@@ -5,22 +5,25 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Pi-space — Activities</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#173f46">
 </head>
 <body>
   <header class="header">
     <div class="wrap header-inner">
       <a class="site-brand" href="index.html" aria-label="Pi-space home">
         <span class="site-logo-wrap">
-          <img class="site-logo" src="logo.png" alt="Pi-space community logo" onerror="this.hidden=true;" />
+          <img class="site-logo" data-content="brand.logoUrl" src="logo.svg" alt="Pi-space community logo" />
         </span>
         <span class="site-brand-copy">
-          <span class="site-brand-name">Pi-space</span>
-          <span class="site-brand-subtitle">Activities</span>
+          <span class="site-brand-name" data-content="brand.name">Pi-space</span>
+          <span class="site-brand-subtitle" data-content="brand.tagline">Activities</span>
         </span>
       </a>
       <nav class="site-nav" aria-label="Primary navigation">
         <a href="index.html">Home</a>
         <a href="lessons.html">Lessons</a>
+        <a href="forum.html">Forum</a>
         <a href="activities.html" aria-current="page">Activities</a>
         <a href="../terms_and_policies.html">Terms</a>
       </nav>
@@ -30,22 +33,29 @@
 
   <script src="site-config.js"></script>
   <script src="auth.js"></script>
+  <script src="content.js"></script>
+  <script src="pwa.js"></script>
 
   <main class="wrap main">
     <section class="card hero">
-      <div class="section-label">Programs</div>
-      <h2 id="programs">Acharnement</h2>
+      <div class="section-label" data-content="pages.activities.heroEyebrow">Programs</div>
+      <h2 id="programs" data-content="pages.activities.heroTitle">Acharnement</h2>
       <div class="hero-copy">
-        <p>Acharnement is a year-long program whose sole purpose is to enhance our abilities in both Mathematics and Physics by learning and growing together with our peers through a variety of sub-programs.</p>
-        <p class="small">The program will officially begin once we reach our target of 100 members.</p>
+        <p data-content="pages.activities.heroText">Acharnement is a year-long program whose sole purpose is to enhance our abilities in both Mathematics and Physics by learning and growing together with our peers through a variety of sub-programs.</p>
+        <p class="small" data-content="pages.activities.heroSmall">The program will officially begin once we reach our target of 100 members.</p>
       </div>
-      <div class="card" style="margin:0;">
-        <p class="small">[Discord server members count status]</p>
+      <div class="server-status" id="discord-server-status" aria-live="polite">
+        <span class="server-status-dot" aria-hidden="true"></span>
+        <span class="server-status-copy">
+          <strong>Discord community</strong>
+          <span data-server-status-message>Checking server status...</span>
+        </span>
+        <a class="auth-link" data-server-status-link href="https://discord.com" hidden>Join server</a>
       </div>
     </section>
 
     <section class="card">
-      <h2>Points &amp; Rewards</h2>
+      <h2 data-content="pages.activities.rewardsTitle">Points &amp; Rewards</h2>
       <p class="small">There will be a points system that can be converted into <a href="https://discord.com/channels/1519982094535626862/1519982095194128432/1531239732024184983">Power IQ</a> credits, a community with an economy system where credits can be used to purchase various rewards.</p>
       <p class="small"><strong>Conversion rate:</strong> 5 points = 1 Power IQ credit</p>
       <ul class="small">
@@ -59,7 +69,7 @@
     </section>
 
     <section class="card">
-      <h2>What the Program Includes</h2>
+      <h2 data-content="pages.activities.programTitle">What the Program Includes</h2>
       <div class="grid">
         <div class="lesson-card">
           <h3>Mentors</h3>
@@ -87,6 +97,8 @@
 
   <script>
     mountTriangleAuthWidget("auth-widget");
+    mountTriangleContent("activities");
+    mountDiscordServerStatus("discord-server-status");
   </script>
 </body>
 </html>

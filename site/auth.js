@@ -139,3 +139,31 @@ async function mountTriangleEditorNote(containerId) {
     container.innerHTML = "";
   }
 }
+
+async function mountDiscordServerStatus(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const message = container.querySelector("[data-server-status-message]");
+  const link = container.querySelector("[data-server-status-link]");
+  const dot = container.querySelector(".server-status-dot");
+
+  try {
+    const response = await fetch(buildTriangleApiUrl("/api/discord/status"), {
+      cache: "no-store",
+    });
+    if (!response.ok) throw new Error("Discord status unavailable");
+    const status = await response.json();
+    if (!status.available) throw new Error("Discord status unavailable");
+
+    const memberCount = Number.isFinite(status.members) ? ` · ${status.members} members` : "";
+    message.textContent = `${status.online} online now${memberCount}`;
+    dot.classList.add("is-online");
+    if (status.invite) {
+      link.href = status.invite;
+    }
+  } catch (error) {
+    message.textContent = "Server status is temporarily unavailable.";
+    dot.classList.add("is-unavailable");
+  }
+}

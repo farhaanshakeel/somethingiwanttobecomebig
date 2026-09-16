@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Pi-space — Lessons</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#173f46">
   <script>
     window.MathJax = {
       tex: {
@@ -23,16 +25,17 @@
     <div class="wrap header-inner">
       <a class="site-brand" href="index.html" aria-label="Pi-space home">
         <span class="site-logo-wrap">
-          <img class="site-logo" src="logo.png" alt="Pi-space community logo" onerror="this.hidden=true;" />
+          <img class="site-logo" data-content="brand.logoUrl" src="logo.svg" alt="Pi-space community logo" />
         </span>
         <span class="site-brand-copy">
-          <span class="site-brand-name">Pi-space</span>
-          <span class="site-brand-subtitle">Academy</span>
+          <span class="site-brand-name" data-content="brand.name">Pi-space</span>
+          <span class="site-brand-subtitle" data-content="brand.tagline">Academy</span>
         </span>
       </a>
       <nav class="site-nav" aria-label="Primary navigation">
         <a href="index.html">Home</a>
         <a href="lessons.html" aria-current="page">Lessons</a>
+        <a href="forum.html">Forum</a>
         <a href="activities.html">Activities</a>
         <a href="../terms_and_policies.html">Terms</a>
       </nav>
@@ -42,11 +45,11 @@
 
   <main class="wrap main">
     <section class="card">
-      <p class="small">The academy uses course-style modules, live teacher posts, and practice-friendly tracks. Each class page can include objectives, notes, and study groups tied to the same subject area.</p>
+      <p class="small" data-content="pages.lessons.intro">The academy uses course-style modules, live teacher posts, and practice-friendly tracks. Each class page can include objectives, notes, and study groups tied to the same subject area.</p>
     </section>
 
     <section class="card">
-      <h2>Academy Format</h2>
+      <h2 data-content="pages.lessons.formatTitle">Academy Format</h2>
       <div class="grid">
         <div class="lesson-card">
           <h3>Course</h3>
@@ -64,13 +67,13 @@
     </section>
 
     <section class="card">
-      <h2>Latest Posted Lessons</h2>
+      <h2 data-content="pages.lessons.latestTitle">Latest Posted Lessons</h2>
       <p class="small">Teacher posts appear here as live academy announcements and class notes.</p>
       <div id="posted-lessons" class="grid live-grid" aria-live="polite"></div>
     </section>
 
     <section class="card" id="featured">
-      <h2>Featured Modules</h2>
+      <h2 data-content="pages.lessons.featuredTitle">Featured Modules</h2>
       <div class="grid">
         <div class="lesson-card">
           <h3>Precalculus Core</h3>
@@ -105,8 +108,8 @@
     </section>
 
     <section class="card">
-      <h2>Schedule & Events</h2>
-      <p class="small">Community study sessions and lessons are scheduled by server moderators. If you run a lesson series, add events to your server calendar and share the invite link in the #events channel.</p>
+      <h2 data-content="pages.lessons.scheduleTitle">Schedule &amp; Events</h2>
+      <p class="small" data-content="pages.lessons.scheduleText">Community study sessions and lessons are scheduled by server moderators. If you run a lesson series, add events to your server calendar and share the invite link in the #events channel.</p>
     </section>
 
     <section class="card">
@@ -122,6 +125,8 @@
 
   <script src="site-config.js"></script>
   <script src="auth.js"></script>
+  <script src="content.js"></script>
+  <script src="pwa.js"></script>
   <script>
     const lessonsContainer = document.getElementById("posted-lessons");
     const siteConfig = window.TRIANGLE_SITE_CONFIG || {};
@@ -265,6 +270,7 @@
 
   <script>
     mountTriangleAuthWidget("auth-widget");
+    mountTriangleContent("lessons");
   </script>
 </body>
 </html>

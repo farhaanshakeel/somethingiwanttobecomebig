@@ -7,9 +7,12 @@ authenticated delivery of the static site and lesson data.
 from __future__ import annotations
 
 import html
+import json
 import os
 import secrets
 import time
+import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlencode
 
@@ -25,27 +28,33 @@ load_dotenv()
 
 ROOT_DIR = Path(__file__).resolve().parent
 SITE_DIR = ROOT_DIR / "site"
+SITE_CONTENT_PATH = SITE_DIR / "content.json"
 
 DISCORD_AUTHORIZE_URL = "https://discord.com/oauth2/authorize"
 DISCORD_TOKEN_URL = "https://discord.com/api/oauth2/token"
 DISCORD_ME_URL = "https://discord.com/api/users/@me"
+DISCORD_GUILD_URL = "https://discord.com/api/guilds/{guild_id}?with_counts=true"
+DISCORD_WIDGET_URL = "https://discord.com/api/guilds/{guild_id}/widget.json"
+DISCORD_CLIENT_ID = os.getenv("DISCORD_CLIENT_ID", "").strip()
+DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET", "").strip()
+DISCORD_REDIRECT_URI = os.getenv("DISCORD_REDIRECT_URI", "").strip()
+DISCORD_BOT_TOKEN = os.getenv("DISCORD_TOKEN", "").strip()
+DISCORD_GUILD_ID = os.getenv("DISCORD_GUILD_ID", "1519982094535626862").strip()
+SITE_EDITOR_USER_ID = os.getenv("SITE_EDITOR_USER_ID", "792418858987290624").strip()
 
 SESSION_COOKIE = "tri_angle_session"
 SESSION_TTL_SECONDS = int(os.getenv("SITE_SESSION_TTL", "86400"))
 STATE_TTL_SECONDS = int(os.getenv("SITE_OAUTH_TTL", "300"))
-COOKIE_SECURE = os.getenv("SITE_COOKIE_SECURE", "0") == "1"
+COOKIE_SECURE = os.getenv(
+    "SITE_COOKIE_SECURE",
+    "1" if DISCORD_REDIRECT_URI.startswith("https://") else "0",
+) == "1"
 COOKIE_SAMESITE = os.getenv("SITE_COOKIE_SAMESITE", "Lax")
 ALLOWED_CORS_ORIGINS = {
     origin.strip()
     for origin in os.getenv("SITE_CORS_ORIGINS", "").split(",")
     if origin.strip()
 }
-
-DISCORD_CLIENT_ID = os.getenv("DISCORD_CLIENT_ID", "").strip()
-DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET", "").strip()
-DISCORD_REDIRECT_URI = os.getenv("DISCORD_REDIRECT_URI", "").strip()
-SITE_EDITOR_USER_ID = os.getenv("SITE_EDITOR_USER_ID", "792418858987290624").strip()
-
 
 class AuthStore:
     def __init__(self) -> None:
@@ -79,6 +88,7 @@ class AuthStore:
         session_id = secrets.token_urlsafe(32)
         self.sessions[session_id] = {
             "user": user,
+            "csrf_token": secrets.token_urlsafe(32),
             "expires_at": time.time() + SESSION_TTL_SECONDS,
         }
         return session_id
@@ -111,6 +121,16 @@ def _safe_next_path(value: str | None) -> str:
     if "://" in value or "\\" in value:
         return "/"
     return value
+
+
+def _same_origin_request(request: web.Request) -> bool:
+    scheme = request.headers.get("X-Forwarded-Proto", request.scheme).split(",", 1)[0].strip()
+    expected_origin = f"{scheme}://{request.host}"
+    origin = request.headers.get("Origin")
+    if origin:
+        return origin == expected_origin or origin in ALLOWED_CORS_ORIGINS
+    referer = request.headers.get("Referer")
+    return not referer or referer.startswith(f"{expected_origin}/")
 
 
 def _display_name(user: dict) -> str:
@@ -204,6 +224,34 @@ async def _require_user(request: web.Request) -> dict:
     return user
 
 
+async def _require_editor_request(request: web.Request) -> dict:
+    user = await _require_user(request)
+    if not _is_site_editor(user):
+        raise web.HTTPForbidden(text="Editor access required")
+    if not _same_origin_request(request):
+        raise web.HTTPForbidden(text="Cross-site request blocked")
+    session = AUTH.get_session(request.cookies.get(SESSION_COOKIE))
+    csrf_token = request.headers.get("X-CSRF-Token")
+    if not session or not csrf_token or not secrets.compare_digest(
+        csrf_token, session.get("csrf_token", "")
+    ):
+        raise web.HTTPForbidden(text="CSRF validation failed")
+    return user
+
+
+async def _require_mutating_user(request: web.Request) -> dict:
+    user = await _require_user(request)
+    if not _same_origin_request(request):
+        raise web.HTTPForbidden(text="Cross-site request blocked")
+    session = AUTH.get_session(request.cookies.get(SESSION_COOKIE))
+    csrf_token = request.headers.get("X-CSRF-Token")
+    if not session or not csrf_token or not secrets.compare_digest(
+        csrf_token, session.get("csrf_token", "")
+    ):
+        raise web.HTTPForbidden(text="CSRF validation failed")
+    return user
+
+
 def _cors_origin(request: web.Request) -> str | None:
     origin = request.headers.get("Origin")
     if not origin or not ALLOWED_CORS_ORIGINS:
@@ -225,6 +273,10 @@ async def handle_activities(request: web.Request) -> web.Response:
     return await _render_site_page(request, "activities.html")
 
 
+async def handle_forum(request: web.Request) -> web.Response:
+    return await _render_site_page(request, "forum.html")
+
+
 async def handle_terms(request: web.Request) -> web.Response:
     return await _render_site_page(request, "terms_and_policies.html")
 
@@ -239,8 +291,7 @@ async def handle_login_start(request: web.Request) -> web.StreamResponse:
             text="Discord OAuth is not configured. Set DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, and DISCORD_REDIRECT_URI."
         )
 
-    next_path = _safe_next_path(request.query.get("next"))
-    state = AUTH.create_state(next_path)
+    state = AUTH.create_state("/")
     params = {
         "client_id": DISCORD_CLIENT_ID,
         "redirect_uri": DISCORD_REDIRECT_URI,
@@ -321,6 +372,8 @@ async def handle_callback(request: web.Request) -> web.Response:
 
 
 async def handle_logout(request: web.Request) -> web.Response:
+    if not _same_origin_request(request):
+        raise web.HTTPForbidden(text="Cross-site request blocked")
     session_id = request.cookies.get(SESSION_COOKIE)
     AUTH.delete_session(session_id)
     response = web.HTTPFound("/login")
@@ -328,9 +381,56 @@ async def handle_logout(request: web.Request) -> web.Response:
     return response
 
 
+async def handle_api_discord_status(request: web.Request) -> web.Response:
+    if not DISCORD_GUILD_ID:
+        return web.json_response({"available": False}, status=503)
+
+    headers = {"Authorization": f"Bot {DISCORD_BOT_TOKEN}"} if DISCORD_BOT_TOKEN else {}
+    guild_url = DISCORD_GUILD_URL.format(guild_id=DISCORD_GUILD_ID)
+    try:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=8)) as session:
+            async with session.get(guild_url, headers=headers) as guild_response:
+                if guild_response.status == 200:
+                    guild = await guild_response.json()
+                    return web.json_response(
+                        {
+                            "available": True,
+                            "name": guild.get("name", "Discord server"),
+                            "members": guild.get("approximate_member_count", 0),
+                            "online": guild.get("approximate_presence_count", 0),
+                        },
+                        headers={"Cache-Control": "public, max-age=60"},
+                    )
+
+            widget_url = DISCORD_WIDGET_URL.format(guild_id=DISCORD_GUILD_ID)
+            async with session.get(widget_url) as widget_response:
+                if widget_response.status != 200:
+                    return web.json_response({"available": False}, status=503)
+                widget = await widget_response.json()
+    except (aiohttp.ClientError, TimeoutError, ValueError):
+        return web.json_response({"available": False}, status=503)
+
+    return web.json_response(
+        {
+            "available": True,
+            "name": widget.get("name", "Discord server"),
+            "members": len(widget.get("members", [])),
+            "online": widget.get("presence_count", 0),
+            "invite": widget.get("instant_invite"),
+        },
+        headers={"Cache-Control": "public, max-age=60"},
+    )
+
+
 async def handle_api_me(request: web.Request) -> web.Response:
     user = await _require_user(request)
     return web.json_response({"user": user})
+
+
+async def handle_api_csrf(request: web.Request) -> web.Response:
+    await _require_user(request)
+    session = AUTH.get_session(request.cookies.get(SESSION_COOKIE))
+    return web.json_response({"token": session["csrf_token"]})
 
 
 async def handle_api_lessons(request: web.Request) -> web.Response:
@@ -345,15 +445,133 @@ async def handle_api_lessons(request: web.Request) -> web.Response:
     return web.json_response({"lessons": sorted_lessons})
 
 
+def _forum_data() -> dict:
+    data = load_data()
+    forum = data.setdefault("forum", {"categories": [], "threads": []})
+    forum.setdefault("categories", [])
+    forum.setdefault("threads", [])
+    return forum
+
+
+def _forum_author(user: dict) -> dict:
+    return {
+        "id": str(user.get("id", "")),
+        "name": _display_name(user),
+        "avatar": _avatar_url(user),
+    }
+
+
+def _forum_response(forum: dict) -> dict:
+    threads = sorted(
+        forum.get("threads", []),
+        key=lambda thread: thread.get("updated", thread.get("created", "")),
+        reverse=True,
+    )
+    return {"categories": forum.get("categories", []), "threads": threads}
+
+
+async def handle_api_forum(request: web.Request) -> web.Response:
+    await _require_user(request)
+    return web.json_response(_forum_response(_forum_data()))
+
+
+async def handle_api_forum_thread(request: web.Request) -> web.Response:
+    user = await _require_mutating_user(request)
+    try:
+        payload = await request.json()
+    except Exception:
+        raise web.HTTPBadRequest(text="Invalid JSON payload")
+
+    title = str(payload.get("title", "")).strip()
+    body = str(payload.get("body", "")).strip()
+    category = str(payload.get("category", "")).strip()
+    if not title or not body or not category:
+        raise web.HTTPBadRequest(text="Title, body, and category are required")
+    if len(title) > 120 or len(body) > 5000 or len(category) > 40:
+        raise web.HTTPBadRequest(text="Forum content exceeds the allowed length")
+
+    forum = _forum_data()
+    categories = {str(item).strip() for item in forum["categories"]}
+    if category not in categories:
+        raise web.HTTPBadRequest(text="Unknown forum category")
+    now = datetime.now(timezone.utc).isoformat()
+    thread = {
+        "id": uuid.uuid4().hex,
+        "category": category,
+        "title": title,
+        "created": now,
+        "updated": now,
+        "author": _forum_author(user),
+        "replies": [{"body": body, "created": now, "author": _forum_author(user)}],
+    }
+    forum["threads"].append(thread)
+    save_data(load_data())
+    return web.json_response({"thread": thread}, status=201)
+
+
+async def handle_api_forum_reply(request: web.Request) -> web.Response:
+    user = await _require_mutating_user(request)
+    thread_id = request.match_info["thread_id"]
+    try:
+        payload = await request.json()
+    except Exception:
+        raise web.HTTPBadRequest(text="Invalid JSON payload")
+    body = str(payload.get("body", "")).strip()
+    if not body:
+        raise web.HTTPBadRequest(text="Reply body is required")
+    if len(body) > 5000:
+        raise web.HTTPBadRequest(text="Reply exceeds the allowed length")
+
+    forum = _forum_data()
+    thread = next((item for item in forum["threads"] if item.get("id") == thread_id), None)
+    if thread is None:
+        raise web.HTTPNotFound(text="Thread not found")
+    now = datetime.now(timezone.utc).isoformat()
+    reply = {"body": body, "created": now, "author": _forum_author(user)}
+    thread.setdefault("replies", []).append(reply)
+    thread["updated"] = now
+    save_data(load_data())
+    return web.json_response({"thread": thread}, status=201)
+
+
+def _load_site_content() -> dict:
+    try:
+        return json.loads(SITE_CONTENT_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {"brand": {}, "banner": {}, "profiles": [], "pages": {}}
+
+
+async def handle_api_site_content(request: web.Request) -> web.Response:
+    return web.json_response(_load_site_content())
+
+
+async def handle_admin_content(request: web.Request) -> web.Response:
+    await _require_editor_request(request)
+
+    try:
+        payload = await request.json()
+    except Exception:
+        raise web.HTTPBadRequest(text="Invalid JSON payload")
+    if not isinstance(payload, dict):
+        raise web.HTTPBadRequest(text="Content must be a JSON object")
+
+    try:
+        SITE_CONTENT_PATH.write_text(
+            json.dumps(payload, indent=2, ensure_ascii=True) + "\n",
+            encoding="utf-8",
+        )
+    except OSError as exc:
+        raise web.HTTPInternalServerError(text=f"Failed to save site content: {exc}")
+    return web.json_response({"ok": True})
+
+
 async def handle_admin_save(request: web.Request) -> web.Response:
     """Save a site file. Only accessible to the configured site editor.
 
     Expects JSON: { "path": "relative/path/to/file.html", "content": "..." }
     The path is restricted to files under the project root (ROOT_DIR).
     """
-    user = await _require_user(request)
-    if not _is_site_editor(user):
-        raise web.HTTPForbidden(text="Editor access required")
+    await _require_editor_request(request)
 
     try:
         payload = await request.json()
@@ -373,10 +591,10 @@ async def handle_admin_save(request: web.Request) -> web.Response:
         raise web.HTTPBadRequest(text="Invalid path")
 
     try:
-        root_resolved = ROOT_DIR.resolve()
-        target_resolved.relative_to(root_resolved)
+        site_root_resolved = SITE_DIR.resolve()
+        target_resolved.relative_to(site_root_resolved)
     except Exception:
-        raise web.HTTPBadRequest(text="Path outside allowed project root")
+        raise web.HTTPBadRequest(text="Only files inside the site directory can be edited")
 
     # Ensure parent directories exist and write file
     try:
@@ -385,7 +603,7 @@ async def handle_admin_save(request: web.Request) -> web.Response:
     except Exception as exc:
         raise web.HTTPInternalServerError(text=f"Failed to write file: {exc}")
 
-    return web.json_response({"ok": True, "path": str(target_resolved.relative_to(root_resolved))})
+    return web.json_response({"ok": True, "path": str(target_resolved.relative_to(SITE_DIR.resolve()))})
 
 
 async def handle_styles(request: web.Request) -> web.Response:
@@ -398,6 +616,31 @@ async def handle_auth_script(request: web.Request) -> web.Response:
 
 async def handle_site_config(request: web.Request) -> web.Response:
     return web.FileResponse(SITE_DIR / "site-config.js")
+
+
+async def handle_content_script(request: web.Request) -> web.Response:
+    return web.FileResponse(SITE_DIR / "content.js")
+
+
+async def handle_forum_script(request: web.Request) -> web.Response:
+    return web.FileResponse(SITE_DIR / "forum.js")
+
+
+async def handle_manifest(request: web.Request) -> web.Response:
+    manifest = (SITE_DIR / "manifest.webmanifest").read_text(encoding="utf-8")
+    return web.Response(text=manifest, content_type="application/manifest+json")
+
+
+async def handle_pwa_script(request: web.Request) -> web.Response:
+    return web.FileResponse(SITE_DIR / "pwa.js")
+
+
+async def handle_service_worker(request: web.Request) -> web.Response:
+    return web.FileResponse(SITE_DIR / "sw.js", headers={"Service-Worker-Allowed": "/"})
+
+
+async def handle_logo(request: web.Request) -> web.Response:
+    return web.FileResponse(SITE_DIR / "logo.svg")
 
 
 async def handle_editor(request: web.Request) -> web.Response:
@@ -431,7 +674,7 @@ async def _cors_and_security_headers(request: web.Request, handler):
 
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
-        "img-src 'self' https://cdn.discordapp.com; "
+        "img-src 'self' https: data:; "
         "style-src 'self' 'unsafe-inline'; "
         "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
         "font-src 'self' data: https://cdn.jsdelivr.net; "
@@ -463,18 +706,33 @@ def create_app() -> web.Application:
     app.router.add_get("/index.html", handle_index)
     app.router.add_get("/lessons.html", handle_lessons)
     app.router.add_get("/activities.html", handle_activities)
+    app.router.add_get("/forum", handle_forum)
+    app.router.add_get("/forum.html", handle_forum)
     app.router.add_get("/terms_and_policies.html", handle_terms)
     app.router.add_get("/login", handle_login)
     app.router.add_get("/login/start", handle_login_start)
     app.router.add_get("/callback", handle_callback)
     app.router.add_post("/logout", handle_logout)
     app.router.add_get("/api/me", handle_api_me)
+    app.router.add_get("/api/discord/status", handle_api_discord_status)
+    app.router.add_get("/api/csrf", handle_api_csrf)
     app.router.add_get("/api/lessons", handle_api_lessons)
+    app.router.add_get("/api/site-content", handle_api_site_content)
+    app.router.add_get("/api/forum", handle_api_forum)
+    app.router.add_post("/api/forum/threads", handle_api_forum_thread)
+    app.router.add_post("/api/forum/threads/{thread_id}/replies", handle_api_forum_reply)
     app.router.add_get("/styles.css", handle_styles)
     app.router.add_get("/auth.js", handle_auth_script)
     app.router.add_get("/site-config.js", handle_site_config)
+    app.router.add_get("/content.js", handle_content_script)
+    app.router.add_get("/forum.js", handle_forum_script)
+    app.router.add_get("/manifest.webmanifest", handle_manifest)
+    app.router.add_get("/pwa.js", handle_pwa_script)
+    app.router.add_get("/sw.js", handle_service_worker)
+    app.router.add_get("/logo.svg", handle_logo)
     app.router.add_get("/editor", handle_editor)
     app.router.add_post("/admin/save", handle_admin_save)
+    app.router.add_post("/admin/content", handle_admin_content)
     return app
 
 

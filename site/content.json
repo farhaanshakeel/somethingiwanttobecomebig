@@ -1,0 +1,48 @@
+{
+  "brand": {
+    "name": "Pi-space",
+    "tagline": "Academy",
+    "logoUrl": "logo.svg"
+  },
+  "banner": {
+    "enabled": true,
+    "eyebrow": "Pi-space Academy",
+    "title": "Learn together. Go further.",
+    "text": "A free Mathematics and Physics community for ambitious students.",
+    "imageUrl": "",
+    "buttonText": "Join the community",
+    "buttonUrl": "https://discord.gg/qCHFRHedR"
+  },
+  "profiles": [],
+  "pages": {
+    "home": {
+      "heroTitle": "Pi-space",
+      "heroText": "A structured learning and studying community for students who want to get better at their Mathematics and Physics skills and stand out, while also preparing for examinations like olympiads, for example IOQM, RMO, or IMO, and more. It is a non-profit community, providing everything free of cost.",
+      "heroSmall": "Join the Discord community, the main place for community interaction.",
+      "highlightsTitle": "Highlights",
+      "howItWorksTitle": "How It Works",
+      "howItWorksItems": [
+        "Join the site with Discord for a secure student profile.",
+        "Browse the academy tracks and open course pages.",
+        "Use the bot for study groups, teacher posts, and guided practice."
+      ],
+      "academyTitle": "What's in the Academy"
+    },
+    "lessons": {
+      "intro": "The academy uses course-style modules, live teacher posts, and practice-friendly tracks. Each class page can include objectives, notes, and study groups tied to the same subject area.",
+      "formatTitle": "Academy Format",
+      "latestTitle": "Latest Posted Lessons",
+      "featuredTitle": "Featured Modules",
+      "scheduleTitle": "Schedule & Events",
+      "scheduleText": "Community study sessions and lessons are scheduled by server moderators. If you run a lesson series, add events to your server calendar and share the invite link in the #events channel."
+    },
+    "activities": {
+      "heroEyebrow": "Programs",
+      "heroTitle": "Acharnement",
+      "heroText": "Acharnement is a year-long program whose sole purpose is to enhance our abilities in both Mathematics and Physics by learning and growing together with our peers through a variety of sub-programs.",
+      "heroSmall": "The program will officially begin once we reach our target of 100 members.",
+      "rewardsTitle": "Points & Rewards",
+      "programTitle": "What the Program Includes"
+    }
+  }
+}

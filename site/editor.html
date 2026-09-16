@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Pi-space — Site Editor</title>
+  <title>Pi-space - Site Editor</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -12,86 +12,82 @@
   <header class="header">
     <div class="wrap header-inner">
       <a class="site-brand" href="index.html" aria-label="Pi-space home">
-        <span class="site-logo-wrap">
-          <img class="site-logo" src="logo.png" alt="Pi-space community logo" onerror="this.hidden=true;" />
-        </span>
-        <span class="site-brand-copy">
-          <span class="site-brand-name">Pi-space</span>
-          <span class="site-brand-subtitle">Editor</span>
-        </span>
+        <span class="site-logo-wrap"><span class="site-logo-fallback">P</span></span>
+        <span class="site-brand-copy"><span class="site-brand-name">Pi-space</span><span class="site-brand-subtitle">Editor</span></span>
       </a>
       <nav class="site-nav" aria-label="Primary navigation">
-        <a href="index.html">Home</a>
-        <a href="lessons.html">Lessons</a>
-        <a href="activities.html">Activities</a>
-        <a href="../terms_and_policies.html">Terms</a>
+        <a href="index.html">Home</a><a href="lessons.html">Lessons</a><a href="forum.html">Forum</a><a href="activities.html">Activities</a><a href="../terms_and_policies.html">Terms</a>
       </nav>
       <div id="auth-widget" class="auth-slot"></div>
     </div>
   </header>
-
-  <main class="wrap main">
-    <section class="card">
-      <h2>Site Editor</h2>
-      <p class="small">Edit site files directly. Use relative paths under the project root, for example <code>site/page.html</code> or <code>site/lessons.html</code>.</p>
-
-      <label for="file-path">File path</label>
-      <input id="file-path" type="text" placeholder="site/example.html" style="width:100%;" />
-
-      <label for="file-content">Content</label>
-      <textarea id="file-content" rows="20" style="width:100%; font-family: monospace;"></textarea>
-
-      <div style="margin-top:8px; display:flex; gap:8px;">
-        <button id="load-btn" class="auth-link">Load</button>
-        <button id="save-btn" class="auth-link">Save</button>
-        <span id="editor-status" style="align-self:center"></span>
-      </div>
+  <main class="wrap main editor-main">
+    <section class="card editor-intro">
+      <div class="section-label">No-code publishing</div>
+      <h1>Manage your site</h1>
+      <p class="small">Update visible site content, add profiles, and publish changes without touching HTML or Python.</p>
+      <div id="editor-status" class="editor-status" role="status"></div>
     </section>
+    <form id="content-form">
+      <section class="card editor-panel">
+        <div class="editor-panel-heading"><div><div class="section-label">Identity</div><h2>Brand and banner</h2></div><button class="auth-link auth-link-login" type="submit">Publish changes</button></div>
+        <div class="editor-fields">
+          <label>Website name<input data-path="brand.name" required></label>
+          <label>Tagline<input data-path="brand.tagline"></label>
+          <label>Logo URL<input data-path="brand.logoUrl" placeholder="logo.svg"></label>
+          <label class="field-wide"><span>Banner visible</span><input data-path="banner.enabled" type="checkbox"></label>
+          <label>Banner eyebrow<input data-path="banner.eyebrow"></label>
+          <label>Banner title<input data-path="banner.title"></label>
+          <label class="field-wide">Banner text<textarea data-path="banner.text" rows="3"></textarea></label>
+          <label>Banner image URL<input data-path="banner.imageUrl" placeholder="https://..."></label>
+          <label>Banner button text<input data-path="banner.buttonText"></label>
+          <label>Banner button URL<input data-path="banner.buttonUrl"></label>
+        </div>
+      </section>
+      <section class="card editor-panel">
+        <div class="editor-panel-heading"><div><div class="section-label">People</div><h2>Website profiles</h2></div><button id="add-profile" class="auth-link" type="button">Add profile</button></div>
+        <p class="small">Add mentors, teachers, programs, or community profiles. They appear on the home page.</p>
+        <div id="profiles-editor" class="editor-list"></div>
+      </section>
+      <section class="card editor-panel">
+        <div class="section-label">Pages</div><h2>Page content</h2>
+        <div class="editor-tabs" role="tablist"><button type="button" class="editor-tab active" data-page-tab="home">Home</button><button type="button" class="editor-tab" data-page-tab="lessons">Lessons</button><button type="button" class="editor-tab" data-page-tab="activities">Activities</button></div>
+        <div id="page-fields"></div>
+      </section>
+    </form>
+    <details class="card advanced-editor"><summary>Advanced file editor</summary><p class="small">Use this only for custom HTML, CSS, or other project files.</p><label for="file-path">File path</label><input id="file-path" placeholder="site/example.html"><label for="file-content">Content</label><textarea id="file-content" rows="14"></textarea><div class="editor-actions"><button id="load-btn" class="auth-link" type="button">Load</button><button id="save-btn" class="auth-link" type="button">Save file</button></div></details>
   </main>
-
   <script>
-    function showStatus(msg, ok = true) {
-      const el = document.getElementById('editor-status');
-      el.textContent = msg;
-      el.style.color = ok ? 'green' : 'red';
-      setTimeout(() => { if (el.textContent === msg) el.textContent = '' }, 4000);
+    const pageFields = {
+      home: { heroTitle: "Hero title", heroText: "Hero description", heroSmall: "Hero supporting text", highlightsTitle: "Highlights heading", howItWorksTitle: "How it works heading", howItWorksItems: "How it works items (one per line)", academyTitle: "Academy heading" },
+      lessons: { intro: "Intro", formatTitle: "Format heading", latestTitle: "Latest lessons heading", featuredTitle: "Featured heading", scheduleTitle: "Schedule heading", scheduleText: "Schedule text" },
+      activities: { heroEyebrow: "Hero eyebrow", heroTitle: "Program title", heroText: "Program description", heroSmall: "Supporting text", rewardsTitle: "Rewards heading", programTitle: "Program contents heading" },
+    };
+    let content = null;
+    let csrfToken = "";
+    let activePage = "home";
+    const status = (message, error = false) => { const element = document.getElementById("editor-status"); element.textContent = message; element.className = `editor-status${error ? " is-error" : ""}`; };
+    const getValue = (object, path) => path.split(".").reduce((value, key) => value?.[key], object);
+    const setValue = (object, path, value) => { const keys = path.split("."); const last = keys.pop(); const target = keys.reduce((value, key) => value[key] ??= {}, object); target[last] = value; };
+    function renderPageFields() {
+      const page = content.pages[activePage] || {};
+      document.getElementById("page-fields").innerHTML = Object.entries(pageFields[activePage]).map(([key, label]) => `<label>${label}${key === "howItWorksItems" ? `<textarea data-page-key="${key}" rows="5">${(page[key] || []).join("\n")}</textarea>` : `<textarea data-page-key="${key}" rows="${key.toLowerCase().includes("text") || key === "intro" ? 4 : 2}">${page[key] || ""}</textarea>`}</label>`).join("");
     }
-
-    document.getElementById('load-btn').addEventListener('click', async () => {
-      const path = document.getElementById('file-path').value.trim();
-      if (!path) { showStatus('Enter a file path', false); return; }
-      try {
-        const resp = await fetch(path, { credentials: 'include' });
-        if (!resp.ok) { showStatus('Failed to load file', false); return; }
-        const text = await resp.text();
-        document.getElementById('file-content').value = text;
-        showStatus('Loaded');
-      } catch (err) {
-        showStatus('Error loading file', false);
-      }
-    });
-
-    document.getElementById('save-btn').addEventListener('click', async () => {
-      const path = document.getElementById('file-path').value.trim();
-      const content = document.getElementById('file-content').value;
-      if (!path) { showStatus('Enter a file path', false); return; }
-      try {
-        const resp = await fetch('/admin/save', {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path, content })
-        });
-        const data = await resp.json().catch(() => ({}));
-        if (!resp.ok) {
-          showStatus(data && data.message ? data.message : 'Save failed', false);
-          return;
-        }
-        showStatus('Saved');
-      } catch (err) {
-        showStatus('Save error', false);
-      }
-    });
+    function renderProfiles() {
+      const list = document.getElementById("profiles-editor");
+      list.innerHTML = (content.profiles || []).map((profile, index) => `<article class="editor-profile"><div class="editor-profile-heading"><strong>Profile ${index + 1}</strong><button type="button" class="remove-profile" data-index="${index}">Remove</button></div><div class="editor-fields"><label>Name<input data-profile="name" data-index="${index}" value="${escapeHtml(profile.name || "")}" required></label><label>Image URL<input data-profile="imageUrl" data-index="${index}" value="${escapeHtml(profile.imageUrl || "")}"></label><label class="field-wide">Description<textarea data-profile="description" data-index="${index}" rows="3">${escapeHtml(profile.description || "")}</textarea></label><label>Link text<input data-profile="linkText" data-index="${index}" value="${escapeHtml(profile.linkText || "View profile")}"></label><label>Link URL<input data-profile="linkUrl" data-index="${index}" value="${escapeHtml(profile.linkUrl || "")}"></label></div></article>`).join("") || '<p class="small">No profiles yet. Add one above.</p>';
+    }
+    function escapeHtml(value) { return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;"); }
+    function renderForm() { document.querySelectorAll("[data-path]").forEach((field) => { const value = getValue(content, field.dataset.path); if (field.type === "checkbox") field.checked = Boolean(value); else field.value = value ?? ""; }); renderProfiles(); renderPageFields(); }
+    document.getElementById("content-form").addEventListener("input", (event) => { const field = event.target; if (field.dataset.path) setValue(content, field.dataset.path, field.type === "checkbox" ? field.checked : field.value); if (field.dataset.profile) content.profiles[Number(field.dataset.index)][field.dataset.profile] = field.value; if (field.dataset.pageKey) setValue(content, `pages.${activePage}.${field.dataset.pageKey}`, field.dataset.pageKey === "howItWorksItems" ? field.value.split("\n").map((item) => item.trim()).filter(Boolean) : field.value); });
+    document.getElementById("content-form").addEventListener("submit", async (event) => { event.preventDefault(); try { const response = await fetch("/admin/content", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken }, body: JSON.stringify(content) }); if (!response.ok) throw new Error(await response.text()); status("Published. Your live pages now use the new content."); } catch (error) { status(`Publish failed: ${error.message}`, true); } });
+    document.getElementById("add-profile").addEventListener("click", () => { content.profiles.push({ name: "", description: "", imageUrl: "", linkText: "View profile", linkUrl: "" }); renderProfiles(); });
+    document.getElementById("profiles-editor").addEventListener("click", (event) => { if (!event.target.matches(".remove-profile")) return; content.profiles.splice(Number(event.target.dataset.index), 1); renderProfiles(); });
+    document.querySelectorAll("[data-page-tab]").forEach((tab) => tab.addEventListener("click", () => { activePage = tab.dataset.pageTab; document.querySelectorAll("[data-page-tab]").forEach((item) => item.classList.toggle("active", item === tab)); renderPageFields(); }));
+    document.getElementById("load-btn").addEventListener("click", async () => { const response = await fetch(document.getElementById("file-path").value.trim(), { credentials: "include" }); if (response.ok) document.getElementById("file-content").value = await response.text(); });
+    document.getElementById("save-btn").addEventListener("click", async () => { const response = await fetch("/admin/save", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken }, body: JSON.stringify({ path: document.getElementById("file-path").value.trim(), content: document.getElementById("file-content").value }) }); status(response.ok ? "File saved." : "File save failed.", !response.ok); });
+    async function startEditor() { try { const tokenResponse = await fetch("/api/csrf", { credentials: "include", cache: "no-store" }); if (!tokenResponse.ok) throw new Error("Your editor session has expired. Sign in again."); csrfToken = (await tokenResponse.json()).token; const response = await fetch("/api/site-content", { credentials: "include", cache: "no-store" }); if (!response.ok) throw new Error("Could not load content"); content = await response.json(); renderForm(); } catch (error) { status(error.message, true); } }
+    mountTriangleAuthWidget("auth-widget"); startEditor();
   </script>
 </body>
 </html>

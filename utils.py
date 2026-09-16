@@ -9,7 +9,16 @@ import os
 import threading
 
 DATA_FILE = "triangle_data.json"
-DEFAULT_DATA = {"study_groups": {}, "tasks": {}, "stats": {}, "lessons": []}
+DEFAULT_DATA = {
+    "study_groups": {},
+    "tasks": {},
+    "stats": {},
+    "lessons": [],
+    "forum": {
+        "categories": ["Study help", "Announcements", "Ideas", "Off topic"],
+        "threads": [],
+    },
+}
 
 # In-memory cache to avoid repeated file reads/writes
 _DATA_CACHE = None
@@ -37,7 +46,10 @@ def _ensure_loaded():
 
         for key, default_value in DEFAULT_DATA.items():
             if key not in _DATA_CACHE:
-                _DATA_CACHE[key] = default_value.copy() if isinstance(default_value, list) else default_value
+                if isinstance(default_value, (dict, list)):
+                    _DATA_CACHE[key] = default_value.copy()
+                else:
+                    _DATA_CACHE[key] = default_value
 
 
 def load_data():

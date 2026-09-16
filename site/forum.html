@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pi-space - Forum</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#173f46">
+</head>
+<body>
+  <header class="header">
+    <div class="wrap header-inner">
+      <a class="site-brand" href="index.html" aria-label="Pi-space home">
+        <span class="site-logo-wrap"><img class="site-logo" src="logo.svg" alt="Pi-space community logo" /></span>
+        <span class="site-brand-copy"><span class="site-brand-name">Pi-space</span><span class="site-brand-subtitle">Forum</span></span>
+      </a>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="index.html">Home</a><a href="lessons.html">Lessons</a><a href="forum.html" aria-current="page">Forum</a><a href="activities.html">Activities</a><a href="../terms_and_policies.html">Terms</a>
+      </nav>
+      <div id="auth-widget" class="auth-slot"></div>
+    </div>
+  </header>
+
+  <main class="wrap main forum-main">
+    <section class="card hero forum-hero">
+      <div class="section-label">Community discussion</div>
+      <h1>Ask better questions.<br>Find your people.</h1>
+      <p class="hero-copy">A focused place for study help, program ideas, announcements, and the conversations that do not fit in a lesson.</p>
+    </section>
+    <div id="forum-status" class="editor-status" role="status"></div>
+    <section class="forum-layout">
+      <aside class="card forum-sidebar">
+        <div class="section-label">Browse</div>
+        <h2>Categories</h2>
+        <div id="forum-categories" class="forum-categories"></div>
+        <button id="new-thread-button" class="auth-link auth-link-login" type="button">Start a discussion</button>
+      </aside>
+      <section class="card forum-content" aria-live="polite">
+        <div class="forum-toolbar"><div><div class="section-label">Latest conversations</div><h2 id="forum-heading">All discussions</h2></div><span id="forum-count" class="small"></span></div>
+        <div class="forum-controls"><label class="forum-search"><span class="sr-only">Search discussions</span><input id="forum-search" type="search" placeholder="Search discussions" aria-label="Search discussions"></label><label class="forum-sort"><span class="sr-only">Sort discussions</span><select id="forum-sort" aria-label="Sort discussions"><option value="recent">Most recent</option><option value="replies">Most replies</option><option value="oldest">Oldest</option></select></label></div>
+        <div id="forum-threads" class="forum-threads"></div>
+      </section>
+    </section>
+    <section id="thread-view" class="card forum-thread-view" hidden></section>
+    <section id="thread-composer" class="card forum-composer" hidden>
+      <div class="section-label">New discussion</div><h2>Start a discussion</h2>
+      <form id="thread-form" class="forum-form">
+        <label>Category<select id="thread-category" required></select></label>
+        <label>Title<input id="thread-title" maxlength="120" required placeholder="What would you like to discuss?"></label>
+        <label>Opening post<textarea id="thread-body" maxlength="5000" rows="6" required placeholder="Share enough context for the community to help."></textarea></label>
+        <div class="forum-form-actions"><button class="auth-link auth-link-login" type="submit">Publish discussion</button><button id="cancel-thread" class="auth-link" type="button">Cancel</button></div>
+      </form>
+    </section>
+  </main>
+  <footer>© Pi-space 2026, all rights reserved.</footer>
+  <script src="site-config.js"></script><script src="auth.js"></script><script src="forum.js"></script><script src="pwa.js"></script>
+  <script>mountTriangleAuthWidget("auth-widget"); mountTriangleForum();</script>
+</body>
+</html>

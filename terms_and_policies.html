@@ -3,112 +3,93 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Pi-space — Terms & Policies</title>
-  <style>
-    :root{--accent:#ff6600;--muted:#666}
-    body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;line-height:1.5;color:#222;margin:0;padding:0;background:#f7f8fa}
-    header{background:linear-gradient(90deg,var(--accent),#ff9a4d);color:#fff;padding:36px 20px}
-    .wrap{max-width:980px;margin:0 auto;padding:28px}
-    h1{margin:0;font-size:1.6rem}
-    nav{margin-top:12px}
-    nav a{color:rgba(255,255,255,0.95);text-decoration:none;margin-right:16px;font-weight:600}
-    section{background:#fff;border-radius:10px;padding:20px;margin:18px 0;box-shadow:0 6px 18px rgba(12,20,30,0.06)}
-    h2{color:var(--accent);margin-top:0}
-    .muted{color:var(--muted);font-size:0.95rem}
-    footer{padding:18px 20px;text-align:center;color:var(--muted);font-size:0.9rem}
-    @media (max-width:600px){.wrap{padding:18px}header{padding:28px 12px}nav a{display:block;margin:6px 0}}
-    .toc{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
-    .toc a{background:#fff;border:1px solid #eee;padding:8px 12px;border-radius:6px;color:#333;text-decoration:none}
-    .small{font-size:0.92rem}
-  </style>
+  <meta name="description" content="Pi-space terms of service, privacy policy, community guidelines, and security information." />
+  <title>Pi-space - Terms, Privacy &amp; Security</title>
+  <link rel="stylesheet" href="site/styles.css">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#173f46">
 </head>
 <body>
-  <header>
-    <div class="wrap">
-      <h1>Pi-space — Terms & Policies</h1>
-      <nav>
-        <a href="#terms">Terms of Service</a>
-        <a href="#privacy">Privacy Policy</a>
-        <a href="#community">Community Guidelines</a>
-        <a href="#contact">Contact</a>
+  <script src="site/site-config.js"></script>
+  <script src="site/auth.js"></script>
+  <script src="site/pwa.js"></script>
+  <header class="header">
+    <div class="wrap header-inner">
+      <a class="site-brand" href="site/index.html" aria-label="Pi-space home">
+        <span class="site-logo-wrap"><img class="site-logo" src="site/logo.svg" alt="Pi-space community logo" /></span>
+        <span class="site-brand-copy"><span class="site-brand-name">Pi-space</span><span class="site-brand-subtitle">Policies</span></span>
+      </a>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="site/index.html">Home</a>
+        <a href="site/lessons.html">Lessons</a>
+        <a href="site/forum.html">Forum</a>
+        <a href="site/activities.html">Activities</a>
+        <a href="#terms" aria-current="page">Terms</a>
       </nav>
+      <div id="auth-widget" class="auth-slot"></div>
     </div>
   </header>
 
-  <main class="wrap">
-    <section id="overview">
-      <p class="muted small">Last updated: 2026-07-16</p>
-      <p>Welcome to Pi-space. This document explains the terms of use, privacy practices,
-      and community expectations that apply when you use the Pi-space Discord bot and
-      related features. Please read it before using the service.</p>
-      <div class="toc">
-        <a href="#terms">Terms of Service</a>
-        <a href="#privacy">Privacy Policy</a>
-        <a href="#community">Community Guidelines</a>
-      </div>
+  <main class="wrap main policy-main">
+    <section class="card hero policy-hero">
+      <div class="section-label">Pi-space Academy</div>
+      <h1>Terms, privacy &amp; security</h1>
+      <p class="hero-copy">The rules, privacy practices, community standards, and security commitments for the Pi-space website and Discord bot.</p>
+      <nav class="toc" aria-label="Policy navigation">
+        <a href="#terms">Terms</a><a href="#privacy">Privacy</a><a href="#security">Security</a><a href="#community">Community</a><a href="#contact">Contact</a>
+      </nav>
     </section>
 
-    <section id="terms">
+    <section id="overview" class="card editor-note">
+      <p class="small"><strong>Last updated:</strong> 2026-09-15</p>
+      <p>This page is written for the current Pi-space deployment. It is general service information, not legal advice. The person or organization operating a particular Pi-space deployment remains responsible for configuring it lawfully and keeping its contact information current.</p>
+    </section>
+
+    <section id="terms" class="card">
       <h2>Terms of Service</h2>
-      <p class="small">By using the Pi-space bot you agree to these Terms of Service. The
-      bot and its features are provided "as-is" and may be modified, suspended, or
-      discontinued at any time. You must not use Pi-space for unlawful activities,
-      to harass others, or to attempt to reverse-engineer or exploit the service.
-      Server owners and administrators may remove access, content, or workspaces
-      that violate these terms.</p>
-
-      <h3 class="small">Permitted Use</h3>
-      <ul>
-        <li class="small">Use the bot to create and manage study groups, run pomodoro sessions, and access planner/profile features.</li>
-        <li class="small">Do not exploit or abuse bot commands to spam, harass, or otherwise disrupt other users.</li>
-      </ul>
-
-      <h3 class="small">Limitation of Liability</h3>
-      <p class="small">Pi-space and its maintainers are not liable for indirect, incidental,
-      or consequential damages, lost data, or service interruptions. Use the bot at your own risk.</p>
+      <p>By using Pi-space, you agree to use the website, Discord bot, and related features lawfully and respectfully. Pi-space may be changed, paused, or discontinued. Features are provided on an availability basis and may contain errors.</p>
+      <h3>Acceptable use</h3>
+      <ul><li>Do not use Pi-space to harass, threaten, defraud, impersonate, or target another person.</li><li>Do not upload malware, attempt unauthorized access, bypass authentication, probe private endpoints, or interfere with service availability.</li><li>Do not submit personal information about another person without a lawful reason and appropriate consent.</li><li>Server owners and moderators may remove content or access that violates these terms or their server rules.</li></ul>
+      <h3>Content and responsibility</h3>
+      <p>You are responsible for content you submit through bot commands, profiles, lessons, or the editor. Do not publish confidential information, passwords, access tokens, or sensitive personal data. Educational content is provided for general learning and is not a substitute for professional advice.</p>
+      <h3>Availability and liability</h3>
+      <p>To the extent permitted by law, Pi-space is provided without warranties and its maintainers are not responsible for indirect losses, lost data, or interruptions caused by the service, Discord, hosting providers, or user configuration. Nothing here limits rights that cannot legally be limited.</p>
     </section>
 
-    <section id="privacy">
+    <section id="privacy" class="card">
       <h2>Privacy Policy</h2>
-      <p class="small">Pi-space collects only the information necessary to operate its features,
-      such as Discord user IDs, role and channel references, and any data you explicitly
-      provide via bot commands (for example, study group names or task entries). By
-      default data is stored locally in the `triangle_data.json` file on the host where
-      the bot runs. The project does not sell personal data. If you deploy Pi-space with
-      optional external services (for example, Firestore), those services may store
-      additional data according to the host's configuration and the service's policies.</p>
-
-      <h3 class="small">Data Retention & Requests</h3>
-      <p class="small">To request deletion of data stored by a specific server instance, contact
-      the server administrators or the bot owner (contact details below). For deployments
-      that use external services, data removal may require manual steps by the administrators
-      or by the external service provider; follow the deployment's documented procedures.</p>
+      <p>Pi-space processes only the information needed to provide the enabled features. Depending on the deployment, this may include a Discord user ID, username, avatar information, server or channel identifiers, profile selections, lesson data, planner entries, study-group data, and website session information.</p>
+      <h3>How information is used</h3>
+      <ul><li>To authenticate users through Discord and maintain a server-side login session.</li><li>To provide profiles, study groups, lessons, planning, and productivity features requested by users or server administrators.</li><li>To protect the service, investigate abuse, and maintain reliability.</li></ul>
+      <h3>Storage and sharing</h3>
+      <p>The default project stores bot data in the deployment's local data store. The website stores temporary sessions in server memory. Discord and the hosting provider process information under their own policies. Pi-space does not sell personal information. Information may be disclosed when required by law or to protect users, the service, or the public.</p>
+      <h3>Retention and choices</h3>
+      <p>Data is retained only while needed for the enabled feature or deployment. You may request correction or deletion of data held by a specific server owner or deployment operator. Because deployments can be independently hosted, the request must be sent to the operator identified in the Contact section or to the relevant Discord server administrators.</p>
+      <h3>Cookies</h3>
+      <p>The website uses a secure, HTTP-only session cookie for login. It is not used for advertising or cross-site tracking. Clearing cookies signs you out of the current browser.</p>
     </section>
 
-    <section id="community">
+    <section id="security" class="card">
+      <h2>Security</h2>
+      <p>Pi-space uses Discord OAuth instead of collecting Discord passwords. OAuth state is validated before login, sessions use unpredictable server-generated identifiers, editor mutations require the configured editor account and a session-bound CSRF token, and editor file writes are limited to the public site directory.</p>
+      <h3>Your responsibilities</h3>
+      <ul><li>Keep Discord, hosting, repository, and deployment secrets private.</li><li>Never paste bot tokens, OAuth client secrets, or session cookies into profiles, lessons, issues, or chat.</li><li>Use HTTPS in production and set the documented CORS, cookie, and OAuth redirect settings.</li><li>Limit access to the configured site-editor Discord account and review published content.</li></ul>
+      <h3>Report a vulnerability</h3>
+      <p>Do not publicly post exploitable details or credentials. Contact the deployment operator through the Contact section with the affected URL, reproduction steps, impact, and a safe way to follow up. Remove secrets from logs and rotate any credential that may have been exposed.</p>
+    </section>
+
+    <section id="community" class="card">
       <h2>Community Guidelines</h2>
-      <p class="small">Our community aims to be respectful and inclusive. The following behaviors are prohibited:</p>
-      <ul>
-        <li class="small">Harassment, hate speech, threats, or targeted abuse.</li>
-        <li class="small">Sharing personal data without consent.</li>
-        <li class="small">Spamming, excessive self-promotion, or disruptive behavior.</li>
-      </ul>
-
-      <h3 class="small">Study Group Policy</h3>
-      <p class="small">Servers may host an official admin-started study group. Peer-led groups are
-      permitted but will be clearly marked as peer-led and may not be monitored by server
-      staff. Users join peer-led groups at their own discretion and responsibility.</p>
+      <p>Pi-space is intended to support respectful learning. Harassment, hate speech, threats, doxxing, non-consensual sharing of personal data, spam, malicious links, and disruptive behavior are not allowed. Moderators may act to protect the community and may apply additional server rules.</p>
     </section>
 
-    <section id="contact">
+    <section id="contact" class="card">
       <h2>Contact</h2>
-      <p class="small">Questions, data removal requests, or policy concerns: contact the bot owner or your server administrators.</p>
-      <p class="small">Owner contact (replace with your address): <a href="mailto:admin@example.com">admin@example.com</a></p>
+      <p>For policy questions, data requests, or security reports, contact the Pi-space owner or the administrators of the Discord server where you use the bot. Replace this paragraph with a monitored support email or official support channel before public launch.</p>
     </section>
   </main>
 
-  <footer>
-    © Pi-space — Built for study communities. This page is provided as a template; adapt it to match your organization's legal and operational requirements. See the project `README` and `LICENSE` for additional details.
-  </footer>
+  <footer>© Pi-space 2026. Policies should be reviewed for the laws and services used by your deployment.</footer>
+  <script>mountTriangleAuthWidget("auth-widget");</script>
 </body>
 </html>
