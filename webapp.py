@@ -373,6 +373,8 @@ async def handle_index(request: web.Request) -> web.Response:
 
 async def handle_lessons(request: web.Request) -> web.Response:
     return await _render_site_page(request, "lessons.html")
+async def handle_resources(request: web.Request) -> web.Response:
+    return await _render_site_page(request, "resources.html", require_auth=False)
 
 
 async def handle_activities(request: web.Request) -> web.Response:
@@ -943,6 +945,7 @@ def create_app() -> web.Application:
     app.router.add_get("/", handle_index)
     app.router.add_get("/index.html", handle_index)
     app.router.add_get("/lessons.html", handle_lessons)
+    app.router.add_get("/resources.html", handle_resources)
     app.router.add_get("/activities.html", handle_activities)
     app.router.add_get("/forum", handle_forum)
     app.router.add_get("/forum.html", handle_forum)

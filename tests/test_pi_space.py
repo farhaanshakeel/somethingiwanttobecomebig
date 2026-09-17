@@ -60,6 +60,14 @@ class PiSpaceLoginTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertIn("discord.com/widget?id=1519982094535626862", body)
 
+    async def test_resources_page_is_public_and_loads_resource_content(self):
+        response = await webapp.handle_resources(DummyRequest(path="/resources.html"))
+        body = response.body.decode("utf-8")
+
+        self.assertEqual(response.status, 200)
+        self.assertIn("Resource library", body)
+        self.assertIn("content.js", body)
+
     def test_forum_save_preserves_shared_data(self):
         data = {"lessons": [], "forum": {"categories": [], "threads": []}}
         with mock.patch.object(webapp, "load_data", return_value=data) as load_data:

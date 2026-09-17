@@ -14,6 +14,36 @@
     "buttonUrl": "https://discord.gg/qCHFRHedR"
   },
   "profiles": [],
+    "resources": [
+      {
+        "title": "Khan Academy Mathematics",
+        "category": "Mathematics",
+        "description": "Structured lessons and practice from arithmetic through calculus and linear algebra.",
+        "tags": ["courses", "practice", "foundations"],
+        "url": "https://www.khanacademy.org/math"
+      },
+      {
+        "title": "MIT OpenCourseWare Physics",
+        "category": "Physics",
+        "description": "University-level lecture notes, assignments, and exams for physics learners.",
+        "tags": ["courses", "university", "notes"],
+        "url": "https://ocw.mit.edu/search/?d=Physics"
+      },
+      {
+        "title": "The Art of Problem Solving",
+        "category": "Problem Solving",
+        "description": "A broad collection of olympiad-style problems, discussions, and learning materials.",
+        "tags": ["olympiads", "problems", "community"],
+        "url": "https://artofproblemsolving.com/"
+      },
+      {
+        "title": "Wolfram Alpha",
+        "category": "Tools",
+        "description": "Use symbolic and numerical computation to check work and explore mathematical ideas.",
+        "tags": ["calculator", "graphing", "exploration"],
+        "url": "https://www.wolframalpha.com/"
+      }
+    ],
   "pages": {
     "home": {
       "heroTitle": "Pi-space",

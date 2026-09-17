@@ -55,6 +55,11 @@
         <div id="profiles-editor" class="editor-list"></div>
       </section>
       <section class="card editor-panel">
+        <div class="section-label">Reference shelf</div><h2>Resource library</h2>
+        <p class="small">Use JSON objects with title, category, description, tags, and url fields.</p>
+        <label>Resources JSON<textarea id="resources-json" rows="12"></textarea></label>
+      </section>
+      <section class="card editor-panel">
         <div class="section-label">Pages</div><h2>Page content</h2>
         <div class="editor-tabs" role="tablist"><button type="button" class="editor-tab active" data-page-tab="home">Home</button><button type="button" class="editor-tab" data-page-tab="lessons">Lessons</button><button type="button" class="editor-tab" data-page-tab="activities">Activities</button></div>
         <div id="page-fields"></div>
@@ -105,8 +110,9 @@
       });
     }
     function escapeHtml(value) { return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;"); }
-    function renderForm() { document.querySelectorAll("[data-path]").forEach((field) => { const value = getValue(content, field.dataset.path); if (field.type === "checkbox") field.checked = Boolean(value); else field.value = value ?? ""; }); renderProfiles(); renderPageFields(); }
+    function renderForm() { document.querySelectorAll("[data-path]").forEach((field) => { const value = getValue(content, field.dataset.path); if (field.type === "checkbox") field.checked = Boolean(value); else field.value = value ?? ""; }); document.getElementById("resources-json").value = JSON.stringify(content.resources || [], null, 2); renderProfiles(); renderPageFields(); }
     document.getElementById("content-form").addEventListener("input", (event) => { const field = event.target; if (field.dataset.path) setValue(content, field.dataset.path, field.type === "checkbox" ? field.checked : field.value); if (field.dataset.profile) content.profiles[Number(field.dataset.index)][field.dataset.profile] = field.value; if (field.dataset.pageKey) setValue(content, `pages.${activePage}.${field.dataset.pageKey}`, field.dataset.pageKey === "howItWorksItems" ? field.value.split("\n").map((item) => item.trim()).filter(Boolean) : field.value); });
+    document.getElementById("resources-json").addEventListener("input", (event) => { try { const resources = JSON.parse(event.target.value); if (!Array.isArray(resources)) throw new Error("Resources must be a JSON array."); content.resources = resources; status("Resource edits ready to publish."); } catch (error) { status(`Resource JSON error: ${error.message}`, true); } });
     document.getElementById("add-profile").addEventListener("click", () => { content.profiles.push({ name: "", description: "", imageUrl: "", linkText: "View profile", linkUrl: "" }); renderProfiles(); });
     document.getElementById("profiles-editor").addEventListener("click", (event) => { if (!event.target.matches(".remove-profile")) return; content.profiles.splice(Number(event.target.dataset.index), 1); renderProfiles(); });
     document.querySelectorAll("[data-page-tab]").forEach((tab) => tab.addEventListener("click", () => { activePage = tab.dataset.pageTab; document.querySelectorAll("[data-page-tab]").forEach((item) => item.classList.toggle("active", item === tab)); renderPageFields(); }));

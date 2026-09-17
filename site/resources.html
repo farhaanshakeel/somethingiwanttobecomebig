@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pi-space - Resource library</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="/manifest.webmanifest">
+</head>
+<body>
+  <header class="header">
+    <div class="wrap header-inner">
+      <a class="site-brand" href="index.html" aria-label="Pi-space home"><span class="site-logo-wrap"><img class="site-logo" src="logo.svg" alt="Pi-space community logo" /></span><span class="site-brand-copy"><span class="site-brand-name" data-content="brand.name">Pi-space</span><span class="site-brand-subtitle">Resources</span></span></a>
+      <nav class="site-nav" aria-label="Primary navigation"><a href="index.html">Home</a><a href="lessons.html">Lessons</a><a href="resources.html" aria-current="page">Resources</a><a href="forum.html">Forum</a><a href="activities.html">Activities</a><a href="../terms_and_policies.html">Terms</a></nav>
+      <div id="auth-widget" class="auth-slot"></div>
+    </div>
+  </header>
+  <main class="wrap main resources-main">
+    <section class="card hero"><div class="section-label">Community reference shelf</div><h1>Learn from better sources.</h1><p class="hero-copy">A curated, searchable library of books, courses, tools, and problem archives for serious study.</p></section>
+    <section class="card resources-panel">
+      <div class="resources-toolbar"><label class="resource-search"><span class="sr-only">Search resources</span><input id="resource-search" type="search" placeholder="Search resources" aria-label="Search resources"></label><div id="resource-categories" class="resource-categories" role="list"></div></div>
+      <div id="resource-count" class="small"></div>
+      <div id="resource-list" class="resource-grid" aria-live="polite"><p class="small">Loading resources...</p></div>
+    </section>
+  </main>
+  <footer>© Pi-space 2026, all rights reserved.</footer>
+  <script src="site-config.js"></script><script src="auth.js"></script><script src="content.js"></script>
+  <script>
+    async function mountResources() {
+      const content = await loadTriangleContent();
+      const resources = Array.isArray(content?.resources) ? content.resources : [];
+      const list = document.getElementById("resource-list");
+      const count = document.getElementById("resource-count");
+      const search = document.getElementById("resource-search");
+      const categories = document.getElementById("resource-categories");
+      let activeCategory = "All";
+      const render = () => {
+        const query = search.value.trim().toLowerCase();
+        const visible = resources.filter((resource) => (activeCategory === "All" || resource.category === activeCategory) && `${resource.title} ${resource.description} ${resource.category} ${resource.tags?.join(" ") || ""}`.toLowerCase().includes(query));
+        count.textContent = `${visible.length} resource${visible.length === 1 ? "" : "s"}`;
+        list.replaceChildren();
+        if (!visible.length) { list.appendChild(Object.assign(document.createElement("p"), { className: "small", textContent: "No resources match this search." })); return; }
+        visible.forEach((resource) => { const article = document.createElement("article"); article.className = "resource-card"; const category = document.createElement("span"); category.className = "section-label"; category.textContent = resource.category || "Resource"; const title = document.createElement("h2"); title.textContent = resource.title; const description = document.createElement("p"); description.className = "small"; description.textContent = resource.description || ""; const tags = document.createElement("p"); tags.className = "resource-tags"; tags.textContent = (resource.tags || []).join(" · "); const link = document.createElement("a"); link.className = "auth-link auth-link-login"; link.href = resource.url; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = "Open resource"; article.append(category, title, description, tags, link); list.appendChild(article); });
+      };
+      [...new Set(["All", ...resources.map((resource) => resource.category).filter(Boolean)])].forEach((category) => { const button = document.createElement("button"); button.type = "button"; button.className = `resource-category${category === activeCategory ? " active" : ""}`; button.textContent = category; button.addEventListener("click", () => { activeCategory = category; document.querySelectorAll(".resource-category").forEach((item) => item.classList.toggle("active", item === button)); render(); }); categories.appendChild(button); });
+      search.addEventListener("input", render); render();
+    }
+    mountTriangleAuthWidget("auth-widget"); mountTriangleContent("resources"); mountResources();
+  </script>
+</body>
+</html>
