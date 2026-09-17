@@ -121,6 +121,33 @@ class PiSpaceLoginTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn("last_ip_hash", admin_profile)
         self.assertNotIn("ip_hash_expires_at", admin_profile)
 
+    async def test_public_profile_directory_filters_private_and_restricted_profiles(self):
+        data = {
+            "web_profiles": {
+                "1": {"display_name": "Visible", "private": False, "moderation_status": "normal"},
+                "2": {"display_name": "Private", "private": True, "moderation_status": "normal"},
+                "3": {"display_name": "Restricted", "private": False, "moderation_status": "restricted"},
+            }
+        }
+        with mock.patch.object(webapp, "load_data", return_value=data):
+            response = await webapp.handle_api_public_profiles(DummyRequest())
+
+        profiles = json.loads(response.body)["profiles"]
+        self.assertEqual([profile["display_name"] for profile in profiles], ["Visible"])
+
+    def test_profile_update_limit_blocks_excessive_updates(self):
+        original_attempts = webapp.PROFILE_UPDATE_ATTEMPTS
+        original_limit = webapp.PROFILE_UPDATE_LIMIT
+        try:
+            webapp.PROFILE_UPDATE_ATTEMPTS = {}
+            webapp.PROFILE_UPDATE_LIMIT = 1
+            webapp._check_profile_update_limit("user-1")
+            with self.assertRaises(web.HTTPTooManyRequests):
+                webapp._check_profile_update_limit("user-1")
+        finally:
+            webapp.PROFILE_UPDATE_ATTEMPTS = original_attempts
+            webapp.PROFILE_UPDATE_LIMIT = original_limit
+
 
 if __name__ == "__main__":
     unittest.main()

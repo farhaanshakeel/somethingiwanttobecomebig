@@ -45,6 +45,8 @@ DISCORD_GUILD_ID = os.getenv("DISCORD_GUILD_ID", "1519982094535626862").strip()
 SITE_EDITOR_USER_ID = os.getenv("SITE_EDITOR_USER_ID", "792418858987290624").strip()
 PROFILE_IP_HASH_SECRET = os.getenv("PROFILE_IP_HASH_SECRET", "").strip()
 PROFILE_IP_HASH_TTL = int(os.getenv("PROFILE_IP_HASH_TTL", "2592000"))
+PROFILE_UPDATE_WINDOW = int(os.getenv("PROFILE_UPDATE_WINDOW", "60"))
+PROFILE_UPDATE_LIMIT = int(os.getenv("PROFILE_UPDATE_LIMIT", "10"))
 
 SESSION_COOKIE = "tri_angle_session"
 SESSION_TTL_SECONDS = int(os.getenv("SITE_SESSION_TTL", "86400"))
@@ -115,6 +117,7 @@ class AuthStore:
 
 
 AUTH = AuthStore()
+PROFILE_UPDATE_ATTEMPTS: dict[str, list[float]] = {}
 
 
 def _safe_next_path(value: str | None) -> str:
@@ -228,6 +231,15 @@ def _public_profile(profile: dict) -> dict:
             "updated_at",
         )
     }
+
+
+def _check_profile_update_limit(user_id: str) -> None:
+    now = time.time()
+    attempts = [item for item in PROFILE_UPDATE_ATTEMPTS.get(user_id, []) if item > now - PROFILE_UPDATE_WINDOW]
+    if len(attempts) >= PROFILE_UPDATE_LIMIT:
+        raise web.HTTPTooManyRequests(text="Too many profile updates. Try again shortly.")
+    attempts.append(now)
+    PROFILE_UPDATE_ATTEMPTS[user_id] = attempts
 
 
 def _admin_profile(profile: dict) -> dict:
@@ -566,6 +578,7 @@ async def handle_api_profile(request: web.Request) -> web.Response:
 
 async def handle_api_profile_update(request: web.Request) -> web.Response:
     user = await _require_mutating_user(request)
+    _check_profile_update_limit(str(user.get("id", "")))
     try:
         payload = await request.json()
     except Exception:
@@ -599,6 +612,19 @@ async def handle_api_profile_update(request: web.Request) -> web.Response:
     profile["updated_at"] = datetime.now(timezone.utc).isoformat()
     save_data(load_data())
     return web.json_response({"profile": _public_profile(profile)})
+
+
+async def handle_api_public_profiles(request: web.Request) -> web.Response:
+    data = load_data()
+    profiles = data.get("web_profiles", {})
+    public_profiles = [
+        _public_profile(profile)
+        for profile in profiles.values()
+        if profile.get("private") is False
+        and profile.get("moderation_status", "normal") == "normal"
+    ]
+    public_profiles.sort(key=lambda profile: profile.get("display_name", "").casefold())
+    return web.json_response({"profiles": public_profiles})
 
 
 async def handle_api_csrf(request: web.Request) -> web.Response:
@@ -957,6 +983,7 @@ def create_app() -> web.Application:
     app.router.add_get("/api/me", handle_api_me)
     app.router.add_get("/api/profile", handle_api_profile)
     app.router.add_put("/api/profile", handle_api_profile_update)
+    app.router.add_get("/api/profiles", handle_api_public_profiles)
     app.router.add_get("/api/discord/status", handle_api_discord_status)
     app.router.add_get("/api/csrf", handle_api_csrf)
     app.router.add_get("/api/lessons", handle_api_lessons)
