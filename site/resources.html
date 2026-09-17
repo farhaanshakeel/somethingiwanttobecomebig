@@ -27,13 +27,26 @@
   <script src="site-config.js"></script><script src="auth.js"></script><script src="content.js"></script>
   <script>
     async function mountResources() {
-      const content = await loadTriangleContent();
-      const resources = Array.isArray(content?.resources) ? content.resources : [];
       const list = document.getElementById("resource-list");
       const count = document.getElementById("resource-count");
       const search = document.getElementById("resource-search");
       const categories = document.getElementById("resource-categories");
       let activeCategory = "All";
+      const content = await loadTriangleContent();
+      if (!content) {
+        list.replaceChildren();
+        const message = document.createElement("p");
+        message.className = "small";
+        message.textContent = "The resource library could not be loaded.";
+        const retry = document.createElement("button");
+        retry.className = "auth-link";
+        retry.type = "button";
+        retry.textContent = "Retry";
+        retry.addEventListener("click", () => window.location.reload());
+        list.append(message, retry);
+        return;
+      }
+      const resources = Array.isArray(content.resources) ? content.resources : [];
       const render = () => {
         const query = search.value.trim().toLowerCase();
         const visible = resources.filter((resource) => (activeCategory === "All" || resource.category === activeCategory) && `${resource.title} ${resource.description} ${resource.category} ${resource.tags?.join(" ") || ""}`.toLowerCase().includes(query));
